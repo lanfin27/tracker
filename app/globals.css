@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 206 24% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 206 24% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 206 24% 14%;
+    --primary: 217 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 16% 96%;
+    --secondary-foreground: 206 24% 14%;
+    --muted: 210 16% 96%;
+    --muted-foreground: 206 14% 46%;
+    --accent: 210 16% 96%;
+    --accent-foreground: 206 24% 14%;
+    --destructive: 0 70% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 14% 91%;
+    --input: 210 14% 91%;
+    --ring: 217 100% 50%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* 토스 폰트 시스템 */
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 토스 스타일 리셋 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, input, textarea {
+  font-family: inherit;
+}
+
+/* 토스 포커스 스타일 */
+*:focus-visible {
+  outline: 3px solid #0064FF;
+  outline-offset: 2px;
+}
+
+/* 토스 스크롤바 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F2F4F6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #B0B8C1;
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8B95A1;
+}
+
+@layer utilities {
+  /* 토스 애니메이션 클래스 */
+  .toss-transition {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .toss-container {
+    @apply max-w-[480px] mx-auto bg-white min-h-screen;
+  }
+
+  /* 토스 버튼 베이스 스타일 */
+  .toss-button {
+    @apply relative overflow-hidden transform-gpu transition-all duration-200;
+    @apply active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply focus:outline-none focus-visible:ring-4 focus-visible:ring-toss-blue-light;
+  }
+
+  /* 토스 입력 필드 베이스 */
+  .toss-input-base {
+    @apply w-full px-4 py-4 text-lg font-medium;
+    @apply border-2 border-toss-gray-100 rounded-toss-lg;
+    @apply transition-all duration-200;
+    @apply focus:border-toss-blue focus:shadow-toss-focus;
+    @apply placeholder:text-toss-gray-400;
+  }
+
+  /* 햅틱 피드백 효과 */
+  .haptic {
+    animation: haptic 0.1s ease-out;
+  }
+
+  @keyframes haptic {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(0.98); }
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+}

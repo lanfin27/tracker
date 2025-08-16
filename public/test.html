@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>트래커 테스트 도구</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-bottom: 15px;
+            color: #555;
+            font-size: 18px;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .primary {
+            background: #0064FF;
+            color: white;
+        }
+        .success {
+            background: #00C853;
+            color: white;
+        }
+        .danger {
+            background: #F04452;
+            color: white;
+        }
+        .warning {
+            background: #FFB800;
+            color: white;
+        }
+        .info {
+            background: #6B7684;
+            color: white;
+        }
+        #output {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .log-entry {
+            padding: 5px;
+            margin: 2px 0;
+            border-radius: 3px;
+        }
+        .log-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .log-error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .log-info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 트래커 테스트 도구</h1>
+        
+        <div class="section">
+            <h2>📍 페이지 이동</h2>
+            <div class="button-grid">
+                <button class="info" onclick="navigate('/')">🏠 홈</button>
+                <button class="info" onclick="navigate('/valuation')">📊 가치측정</button>
+                <button class="info" onclick="navigate('/valuation/result')">📈 결과</button>
+                <button class="info" onclick="navigate('/test-flow')">🧪 React 테스트</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🚀 빠른 테스트</h2>
+            <div class="button-grid">
+                <button class="primary" onclick="quickTest('youtube')">📺 YouTube 테스트</button>
+                <button class="success" onclick="quickTest('ecommerce')">🛍️ 이커머스 테스트</button>
+                <button class="warning" onclick="quickTest('saas')">💻 SaaS 테스트</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🔧 데이터 관리</h2>
+            <div class="button-grid">
+                <button class="success" onclick="createFullTestData()">✅ 전체 테스트 데이터 생성</button>
+                <button class="info" onclick="checkData()">💾 데이터 확인</button>
+                <button class="danger" onclick="clearAllData()">🗑️ 모든 데이터 삭제</button>
+                <button class="warning" onclick="runDiagnostics()">🔍 진단 실행</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>📝 출력</h2>
+            <div id="output">대기 중...</div>
+        </div>
+    </div>
+    
+    <script>
+        const log = (message, type = 'info') => {
+            const output = document.getElementById('output');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            output.appendChild(entry);
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        };
+        
+        const clearOutput = () => {
+            document.getElementById('output').innerHTML = '';
+        };
+        
+        const navigate = (path) => {
+            log(`페이지 이동: ${path}`, 'info');
+            location.href = path;
+        };
+        
+        const quickTest = (type) => {
+            clearOutput();
+            log(`🚀 ${type} 빠른 테스트 시작`, 'info');
+            
+            const testData = {
+                youtube: {
+                    businessType: 'youtube',
+                    monthlyRevenue: 5000000,
+                    monthlyProfit: 4000000,
+                    subscribers: 50000,
+                    growthRate: 'rapid',
+                    businessAge: 'established'
+                },
+                ecommerce: {
+                    businessType: 'ecommerce',
+                    monthlyRevenue: 30000000,
+                    monthlyProfit: 5000000,
+                    subscribers: 0,
+                    growthRate: 'steady',
+                    businessAge: 'mature'
+                },
+                saas: {
+                    businessType: 'saas',
+                    monthlyRevenue: 10000000,
+                    monthlyProfit: 7000000,
+                    subscribers: 0,
+                    growthRate: 'stable',
+                    businessAge: 'growing'
+                }
+            };
+            
+            const data = testData[type];
+            if (!data) {
+                log(`❌ ${type} 테스트 데이터를 찾을 수 없습니다`, 'error');
+                return;
+            }
+            
+            try {
+                // tracker_draft 저장
+                localStorage.setItem('tracker_draft', JSON.stringify({
+                    answers: data,
+                    step: 6,
+                    timestamp: Date.now()
+                }));
+                log(`✅ tracker_draft 저장 완료`, 'success');
+                
+                // valuation_answers 저장
+                localStorage.setItem('valuation_answers', JSON.stringify(data));
+                log(`✅ valuation_answers 저장 완료`, 'success');
+                
+                log(`📊 ${type} 테스트 데이터 생성 완료!`, 'success');
+                
+                setTimeout(() => {
+                    if (confirm('결과 페이지로 이동하시겠습니까?')) {
+                        navigate('/valuation/result');
+                    }
+                }, 500);
+            } catch (error) {
+                log(`❌ 오류: ${error.message}`, 'error');
+            }
+        };
+        
+        const createFullTestData = () => {
+            clearOutput();
+            log('📦 전체 테스트 데이터 생성 시작', 'info');
+            
+            const fullData = {
+                businessType: 'youtube',
+                monthlyRevenue: 5000000,
+                monthlyProfit: 4000000,
+                subscribers: 50000,
+                growthRate: 'rapid',
+                businessAge: 'established'
+            };
+            
+            try {
+                localStorage.setItem('tracker_draft', JSON.stringify({
+                    answers: fullData,
+                    step: 6,
+                    timestamp: Date.now()
+                }));
+                localStorage.setItem('valuation_answers', JSON.stringify(fullData));
+                
+                log('✅ 모든 데이터 저장 완료', 'success');
+                log(JSON.stringify(fullData, null, 2), 'info');
+            } catch (error) {
+                log(`❌ 오류: ${error.message}`, 'error');
+            }
+        };
+        
+        const checkData = () => {
+            clearOutput();
+            log('💾 LocalStorage 데이터 확인', 'info');
+            
+            try {
+                const draft = localStorage.getItem('tracker_draft');
+                const answers = localStorage.getItem('valuation_answers');
+                
+                if (draft) {
+                    log('📌 tracker_draft:', 'info');
+                    log(JSON.stringify(JSON.parse(draft), null, 2), 'success');
+                } else {
+                    log('❌ tracker_draft 없음', 'error');
+                }
+                
+                if (answers) {
+                    log('📌 valuation_answers:', 'info');
+                    log(JSON.stringify(JSON.parse(answers), null, 2), 'success');
+                } else {
+                    log('❌ valuation_answers 없음', 'error');
+                }
+            } catch (error) {
+                log(`❌ 오류: ${error.message}`, 'error');
+            }
+        };
+        
+        const clearAllData = () => {
+            if (!confirm('정말로 모든 데이터를 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            clearOutput();
+            log('🗑️ 데이터 삭제 시작', 'info');
+            
+            try {
+                localStorage.removeItem('tracker_draft');
+                localStorage.removeItem('valuation_answers');
+                localStorage.clear();
+                
+                log('✅ 모든 데이터 삭제 완료', 'success');
+            } catch (error) {
+                log(`❌ 오류: ${error.message}`, 'error');
+            }
+        };
+        
+        const runDiagnostics = () => {
+            clearOutput();
+            log('🔍 진단 시작', 'info');
+            
+            // localStorage 지원 확인
+            if (typeof(Storage) !== "undefined") {
+                log('✅ LocalStorage 지원됨', 'success');
+            } else {
+                log('❌ LocalStorage 지원 안됨', 'error');
+            }
+            
+            // 데이터 존재 확인
+            const draft = localStorage.getItem('tracker_draft');
+            const answers = localStorage.getItem('valuation_answers');
+            
+            log(`tracker_draft: ${draft ? '존재 ✅' : '없음 ❌'}`, draft ? 'success' : 'error');
+            log(`valuation_answers: ${answers ? '존재 ✅' : '없음 ❌'}`, answers ? 'success' : 'error');
+            
+            // 데이터 파싱 가능 여부 확인
+            if (draft) {
+                try {
+                    JSON.parse(draft);
+                    log('✅ tracker_draft 파싱 가능', 'success');
+                } catch {
+                    log('❌ tracker_draft 파싱 불가', 'error');
+                }
+            }
+            
+            if (answers) {
+                try {
+                    JSON.parse(answers);
+                    log('✅ valuation_answers 파싱 가능', 'success');
+                } catch {
+                    log('❌ valuation_answers 파싱 불가', 'error');
+                }
+            }
+            
+            // 브라우저 정보
+            log(`브라우저: ${navigator.userAgent}`, 'info');
+            log(`현재 URL: ${location.href}`, 'info');
+            
+            log('✅ 진단 완료', 'success');
+        };
+        
+        // 페이지 로드 시 데이터 확인
+        window.onload = () => {
+            log('페이지 로드 완료', 'info');
+            checkData();
+        };
+    </script>
+</body>
+</html>
