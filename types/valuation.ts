@@ -28,7 +28,7 @@ export interface ValuationInput {
   monthlyRevenue: number;
   monthlyProfit: number;
   subscribers?: number;
-  growthRate: GrowthRate;
+  growthRate?: GrowthRate;
   businessAge: BusinessAge;
 }
 

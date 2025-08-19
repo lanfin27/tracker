@@ -2,145 +2,269 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 206 24% 14%;
-    --card: 0 0% 100%;
-    --card-foreground: 206 24% 14%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 206 24% 14%;
-    --primary: 217 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 16% 96%;
-    --secondary-foreground: 206 24% 14%;
-    --muted: 210 16% 96%;
-    --muted-foreground: 206 14% 46%;
-    --accent: 210 16% 96%;
-    --accent-foreground: 206 24% 14%;
-    --destructive: 0 70% 48%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 210 14% 91%;
-    --input: 210 14% 91%;
-    --ring: 217 100% 50%;
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-  }
+:root {
+  /* 토스 스타일 컬러 */
+  --primary: #3182F6;  /* 토스 블루 */
+  --primary-light: #E8F2FF;
+  --primary-dark: #1B64DA;
+  
+  /* 그레이스케일 */
+  --gray-900: #191F28;  /* 타이틀 */
+  --gray-800: #333D4B;  /* 본문 */
+  --gray-700: #4E5968;
+  --gray-600: #6B7684;
+  --gray-500: #8B95A1;
+  --gray-400: #B0B8C1;
+  --gray-300: #D1D6DB;
+  --gray-200: #E5E8EB;
+  --gray-100: #F2F4F6;
+  --gray-50: #F9FAFB;
+  
+  /* 시맨틱 컬러 */
+  --success: #00C896;
+  --warning: #FFB800;
+  --error: #FF5847;
+  
+  /* 토스 스타일 속성 */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-}
-
-/* 토스 폰트 시스템 */
-html {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* 토스 스타일 리셋 */
 * {
-  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
-button, input, textarea {
-  font-family: inherit;
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
-/* 토스 포커스 스타일 */
-*:focus-visible {
-  outline: 3px solid #0064FF;
-  outline-offset: 2px;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  color: var(--gray-800);
+  background: var(--gray-50);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 토스 스크롤바 */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* 토스 스타일 버튼 */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-::-webkit-scrollbar-track {
-  background: #F2F4F6;
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #B0B8C1;
-  border-radius: 100px;
+.btn-primary:active {
+  transform: translateY(0);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #8B95A1;
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
-@layer utilities {
-  /* 토스 애니메이션 클래스 */
-  .toss-transition {
-    @apply transition-all duration-200 ease-out;
+.btn-secondary {
+  background: white;
+  color: var(--gray-800);
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 16px;
+  border: 1px solid var(--gray-200);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
+/* 토스 스타일 카드 */
+.card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid var(--gray-100);
+  transition: var(--transition);
+}
+
+.card:hover {
+  border-color: var(--gray-200);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* 토스 스타일 입력 필드 */
+.input {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  background: white;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* 토스 스타일 애니메이션 */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-
-  .toss-container {
-    @apply max-w-[480px] mx-auto bg-white min-h-screen;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
 
-  /* 토스 버튼 베이스 스타일 */
-  .toss-button {
-    @apply relative overflow-hidden transform-gpu transition-all duration-200;
-    @apply active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
-    @apply focus:outline-none focus-visible:ring-4 focus-visible:ring-toss-blue-light;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 토스 스타일 프로그레스 바 */
+.progress-bar {
+  height: 4px;
+  background: var(--gray-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease-out;
+}
+
+/* 컨테이너 */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* 블러 효과 최적화 */
+.blur-light {
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.blur-medium {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.blur-heavy {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.blur-gradient-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.8) 100%
+  );
+}
+
+.blur-edge-fade {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.3) 20%,
+    rgba(255, 255, 255, 0.3) 80%,
+    rgba(255, 255, 255, 0.95) 100%
+  );
+}
+
+/* 호기심 유발 애니메이션 */
+@keyframes peekContent {
+  0%, 100% {
+    backdrop-filter: blur(8px);
   }
-
-  /* 토스 입력 필드 베이스 */
-  .toss-input-base {
-    @apply w-full px-4 py-4 text-lg font-medium;
-    @apply border-2 border-toss-gray-100 rounded-toss-lg;
-    @apply transition-all duration-200;
-    @apply focus:border-toss-blue focus:shadow-toss-focus;
-    @apply placeholder:text-toss-gray-400;
+  50% {
+    backdrop-filter: blur(4px);
   }
+}
 
-  /* 햅틱 피드백 효과 */
-  .haptic {
-    animation: haptic 0.1s ease-out;
-  }
+.blur-peek {
+  animation: peekContent 3s ease-in-out infinite;
+}
 
-  @keyframes haptic {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(0.98); }
+/* 블러 호버 효과 */
+.blur-hover-reveal {
+  transition: all 0.3s ease-out;
+}
+
+.blur-hover-reveal:hover {
+  backdrop-filter: blur(2px) !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
   }
   
-  .animate-fade-in {
-    animation: fadeIn 0.4s ease-out;
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: 16px;
   }
 }

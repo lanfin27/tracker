@@ -1,107 +1,83 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import TossInput from '@/components/toss/TossInput';
-import TossButton from '@/components/toss/TossButton';
-import { TrendingUp } from 'lucide-react';
-
-const businessRecommendations: Record<string, number> = {
-  youtube: 2000000,
-  instagram: 1500000,
-  tiktok: 1000000,
-  ecommerce: 5000000,
-  saas: 3000000,
-  blog: 500000,
-  website: 1000000
-};
 
 export default function RevenueStep({ value, onChange, onNext }: any) {
-  const [revenue, setRevenue] = useState(value.monthlyRevenue?.toString() || '');
-  const [hasNoRevenue, setHasNoRevenue] = useState(false);
-  const recommendation = businessRecommendations[value.businessType];
+  const [revenue, setRevenue] = useState(value.monthlyRevenue || '');
+  const [dynamicMessage, setDynamicMessage] = useState('📊 같은 업종 평균: 500만원');
 
-  const handleRevenueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const numValue = parseInt(revenue.toString().replace(/,/g, '')) || 0;
+    if (numValue > 0) {
+      const average = 500; // 평균 500만원
+      if (numValue > average * 2) {
+        setDynamicMessage(`🔥 대박! 평균의 ${Math.round(numValue/average)}배! 상위 5% 확정`);
+      } else if (numValue > average * 1.5) {
+        setDynamicMessage(`🎯 평균보다 ${Math.round((numValue/average - 1) * 100)}% 높습니다! 상위 10% 예상`);
+      } else if (numValue > average) {
+        setDynamicMessage(`✨ 평균 이상! 상위 30% 예상`);
+      } else if (numValue > 0) {
+        setDynamicMessage(`💡 같은 업종 평균: ${average}만원`);
+      }
+    } else {
+      setDynamicMessage('📊 같은 업종 평균: 500만원');
+    }
+  }, [revenue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/[^0-9]/g, '');
     setRevenue(val);
-    onChange('monthlyRevenue', parseInt(val) || 0);
-    setHasNoRevenue(false);
   };
 
-  const handleNoRevenue = () => {
-    setHasNoRevenue(true);
-    setRevenue('0');
-    onChange('monthlyRevenue', 0);
+  const handleSubmit = () => {
+    const numValue = parseInt(revenue.toString().replace(/,/g, '')) || 0;
+    onChange('monthlyRevenue', numValue * 10000); // 만원 단위를 원으로 변환
+    onNext();
   };
-
-  const handleUseRecommendation = () => {
-    setRevenue(recommendation.toString());
-    onChange('monthlyRevenue', recommendation);
-    setHasNoRevenue(false);
-  };
-
-  const canProceed = revenue !== '' || hasNoRevenue;
 
   return (
     <div>
-      <motion.h1 
-        className="text-toss-h1 text-toss-gray-900 mb-3"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        최근 3개월<br />평균 월 매출은?
-      </motion.h1>
+      {/* 심리적 훅 메시지 박스 */}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
+        <p className="text-sm text-green-800">{dynamicMessage}</p>
+      </div>
       
-      <motion.p 
-        className="text-toss-body text-toss-gray-600 mb-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
-        대략적인 금액을 입력해주세요
-      </motion.p>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <TossInput
-          label="월 평균 매출"
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        월 평균 매출
+      </label>
+      
+      <div className="relative">
+        <input
           type="text"
           value={revenue}
-          onChange={handleRevenueChange}
-          suffix="원"
-          formatNumber
-          placeholder="1,000,000"
-          disabled={hasNoRevenue}
-          recommendation={recommendation ? {
-            text: `${value.businessType === 'youtube' ? '유튜브' : 
-                   value.businessType === 'instagram' ? '인스타그램' : 
-                   value.businessType === 'tiktok' ? '틱톡' : 
-                   value.businessType === 'ecommerce' ? '이커머스' : 
-                   value.businessType === 'saas' ? 'SaaS' : 
-                   value.businessType === 'blog' ? '블로그' : '웹사이트'} 평균 매출`,
-            value: recommendation,
-            onUse: handleUseRecommendation
-          } : undefined}
-          helper={revenue && parseInt(revenue) > 0 ? 
-            `연 매출: 약 ${(parseInt(revenue) * 12).toLocaleString()}원` : 
-            undefined
-          }
+          onChange={handleChange}
+          placeholder="500"
+          className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-lg focus:border-[#1A8917] focus:outline-none"
         />
-
-        <div className="mt-6 space-y-3">
-          <TossButton
-            variant={hasNoRevenue ? 'primary' : 'secondary'}
-            fullWidth
-            onClick={handleNoRevenue}
-            icon={<TrendingUp className="w-5 h-5" />}
-          >
-            아직 매출이 없어요
-          </TossButton>
+        <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+          만원
+        </span>
+      </div>
+      
+      <p className="text-sm text-gray-500 mt-2">
+        최근 3개월 평균 매출을 입력해주세요
+      </p>
+      
+      {revenue && parseInt(revenue) > 0 && (
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-600">
+            연 매출: 약 {(parseInt(revenue) * 12 / 10000).toFixed(1)}억원
+          </p>
         </div>
-      </motion.div>
+      )}
+      
+      <button
+        onClick={handleSubmit}
+        disabled={!revenue || parseInt(revenue) <= 0}
+        className="w-full mt-6 bg-[#1A8917] text-white py-3 rounded-lg font-semibold hover:bg-[#147012] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+      >
+        다음
+      </button>
     </div>
   );
 }

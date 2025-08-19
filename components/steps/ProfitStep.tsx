@@ -1,126 +1,109 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import TossInput from '@/components/toss/TossInput';
-import TossButton from '@/components/toss/TossButton';
-import { Calculator } from 'lucide-react';
-
-const profitMargins: Record<string, number> = {
-  youtube: 40,
-  instagram: 40,
-  tiktok: 35,
-  ecommerce: 20,
-  saas: 70,
-  blog: 80,
-  website: 70
-};
 
 export default function ProfitStep({ value, onChange, onNext }: any) {
-  const [profit, setProfit] = useState(value.monthlyProfit?.toString() || '');
-  const [selectedMargin, setSelectedMargin] = useState(profitMargins[value.businessType] || 30);
-  
-  const suggestedProfit = Math.round(value.monthlyRevenue * (selectedMargin / 100));
+  const [profit, setProfit] = useState(value.monthlyProfit || '');
+  const [profitMessage, setProfitMessage] = useState('📈 업계 평균 수익률: 25%');
+  const previousRevenue = (value.monthlyRevenue || 0) / 10000; // 원을 만원으로 변환
 
-  const handleProfitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const calculateProfitMessage = (profitValue: number, revenue: number) => {
+    if (!revenue || !profitValue) return '📈 업계 평균 수익률: 25%';
+    
+    const rate = (profitValue / revenue) * 100;
+    
+    if (rate > 40) return '💎 수익률 40% 이상! 상위 5% 확정';
+    if (rate > 30) return '🏆 수익률 30% 이상! 상위 10% 예상';
+    if (rate > 20) return '✨ 수익률 20% 이상! 상위 30%';
+    if (rate > 10) return '👍 안정적인 수익률입니다';
+    return '💡 수익 개선이 필요할 수 있습니다';
+  };
+
+  useEffect(() => {
+    const numValue = parseInt(profit.toString().replace(/,/g, '')) || 0;
+    setProfitMessage(calculateProfitMessage(numValue, previousRevenue));
+  }, [profit, previousRevenue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/[^0-9]/g, '');
     setProfit(val);
-    onChange('monthlyProfit', parseInt(val) || 0);
   };
 
-  const handleUseCalculated = () => {
-    setProfit(suggestedProfit.toString());
-    onChange('monthlyProfit', suggestedProfit);
+  const handleRateHelper = (rate: number) => {
+    const calculated = Math.round(previousRevenue * rate / 100);
+    setProfit(calculated.toString());
   };
 
-  const marginButtons = [10, 20, 30, 40, 50];
+  const handleSubmit = () => {
+    const numValue = parseInt(profit.toString().replace(/,/g, '')) || 0;
+    onChange('monthlyProfit', numValue * 10000); // 만원 단위를 원으로 변환
+    onNext();
+  };
 
   return (
     <div>
-      <motion.h1 
-        className="text-toss-h1 text-toss-gray-900 mb-3"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        월 평균<br />순수익은?
-      </motion.h1>
-      
-      <motion.p 
-        className="text-toss-body text-toss-gray-600 mb-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
-        비용을 제외한 순수익을 입력해주세요
-      </motion.p>
+      {/* 심리적 훅 메시지 */}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
+        <p className="text-sm text-green-800">{profitMessage}</p>
+      </div>
 
-      {value.monthlyRevenue > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-6 p-4 bg-toss-blue-lighter rounded-toss-lg"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <Calculator className="w-5 h-5 text-toss-blue" />
-            <span className="text-toss-body font-medium text-toss-gray-900">
-              간단 계산기
-            </span>
-          </div>
-          
-          <div className="flex gap-2 mb-3">
-            {marginButtons.map(margin => (
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        월 평균 순수익
+      </label>
+
+      {/* 수익률 계산 도우미 */}
+      {previousRevenue > 0 && (
+        <div className="bg-gray-50 rounded-lg p-4 mb-4">
+          <p className="text-sm text-gray-700 mb-2">💡 수익률 계산 도우미</p>
+          <div className="flex gap-2 flex-wrap">
+            {[10, 20, 25, 30, 40].map((rate) => (
               <button
-                key={margin}
-                onClick={() => setSelectedMargin(margin)}
-                className={`
-                  flex-1 py-2 rounded-toss-sm text-sm font-medium transition-all
-                  ${selectedMargin === margin 
-                    ? 'bg-toss-blue text-white' 
-                    : 'bg-white text-toss-gray-700 hover:bg-toss-gray-50'}
-                `}
+                key={rate}
+                onClick={() => handleRateHelper(rate)}
+                className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-green-50 hover:border-[#1A8917] transition-colors"
               >
-                {margin}%
+                {rate}% = {Math.round(previousRevenue * rate / 100)}만원
               </button>
             ))}
           </div>
-          
-          <div className="flex items-center justify-between">
-            <span className="text-toss-caption text-toss-gray-600">
-              매출의 {selectedMargin}% = {suggestedProfit.toLocaleString()}원
-            </span>
-            <button
-              onClick={handleUseCalculated}
-              className="text-toss-blue font-medium text-sm hover:underline"
-            >
-              사용하기
-            </button>
-          </div>
-        </motion.div>
+        </div>
       )}
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <TossInput
-          label="월 평균 순수익"
+      <div className="relative">
+        <input
           type="text"
           value={profit}
-          onChange={handleProfitChange}
-          suffix="원"
-          formatNumber
-          placeholder="300,000"
-          helper={profit && parseInt(profit) > 0 ? 
-            `연 수익: 약 ${(parseInt(profit) * 12).toLocaleString()}원` : 
-            undefined
-          }
-          error={parseInt(profit) > value.monthlyRevenue ? 
-            '수익이 매출보다 클 수 없어요' : undefined
-          }
+          onChange={handleChange}
+          placeholder={previousRevenue ? Math.round(previousRevenue * 0.25).toString() : '125'}
+          className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-lg focus:border-[#1A8917] focus:outline-none"
         />
-      </motion.div>
+        <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+          만원
+        </span>
+      </div>
+
+      <p className="text-sm text-gray-500 mt-2">
+        세금과 모든 비용을 제외한 순수익을 입력해주세요
+      </p>
+
+      {profit && parseInt(profit) > 0 && previousRevenue > 0 && (
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-600">
+            수익률: {((parseInt(profit) / previousRevenue) * 100).toFixed(1)}%
+          </p>
+          <p className="text-sm text-gray-600">
+            연 순수익: 약 {(parseInt(profit) * 12 / 10000).toFixed(1)}억원
+          </p>
+        </div>
+      )}
+
+      <button
+        onClick={handleSubmit}
+        disabled={!profit || parseInt(profit) < 0}
+        className="w-full mt-6 bg-[#1A8917] text-white py-3 rounded-lg font-semibold hover:bg-[#147012] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+      >
+        다음
+      </button>
     </div>
   );
 }

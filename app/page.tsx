@@ -1,198 +1,200 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { TrendingUp, Users, Clock, ChevronRight, Zap, Trophy } from 'lucide-react';
-import { getInitialCounter, generateLiveNotification } from '@/lib/fake-data';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
   const router = useRouter();
-  const [todayCount, setTodayCount] = useState(0);
-  const [currentNotification, setCurrentNotification] = useState('');
+  const [mounted, setMounted] = useState(false);
+  const [todayCount, setTodayCount] = useState(12384);
+  const [notification, setNotification] = useState('');
   const [showUrgency, setShowUrgency] = useState(false);
-  
+
   useEffect(() => {
-    setTodayCount(getInitialCounter());
+    setMounted(true);
   }, []);
-  
-  // 실시간 카운터 증가 (1-3명씩 랜덤)
+
+  // Real-time counter (increase 1-3 every 2-5 seconds)
   useEffect(() => {
+    if (!mounted) return;
+    
     const interval = setInterval(() => {
       setTodayCount(prev => prev + Math.floor(Math.random() * 3) + 1);
-    }, Math.random() * 5000 + 3000); // 3-8초마다
-    return () => clearInterval(interval);
-  }, []);
-  
-  // 실시간 알림 (3초마다 새로운 알림)
-  useEffect(() => {
-    const showNotification = () => {
-      setCurrentNotification(generateLiveNotification());
-    };
+    }, Math.random() * 3000 + 2000);
     
-    showNotification(); // 초기 알림
+    return () => clearInterval(interval);
+  }, [mounted]);
+  
+  // Real-time notifications (change every 3 seconds)
+  useEffect(() => {
+    if (!mounted) return;
+    
+    const notifications = [
+      '서울의 유튜버가 2.3억 달성',
+      '경기의 이커머스가 5.1억 측정',
+      '부산의 SaaS가 9.8억 돌파',
+      '인천의 인스타그래머가 1.5억 달성',
+      '대구의 틱톡커가 1.8억 측정'
+    ];
+    
+    const showNotification = () => {
+      const randomNotification = notifications[Math.floor(Math.random() * notifications.length)];
+      setNotification(randomNotification);
+    };
+    showNotification();
+    
     const interval = setInterval(showNotification, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [mounted]);
   
-  // 24시간 한정 메시지 (5초 후 표시)
+  // Urgency message (show after 5 seconds)
   useEffect(() => {
+    if (!mounted) return;
+    
     const timer = setTimeout(() => setShowUrgency(true), 5000);
     return () => clearTimeout(timer);
-  }, []);
-  
+  }, [mounted]);
+
+  if (!mounted) return null;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      {/* 실시간 알림 바 */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 text-center">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentNotification}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="flex items-center justify-center gap-2 text-sm font-medium"
-          >
-            <Zap className="w-4 h-4" />
-            {currentNotification}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-      
-      {/* 히어로 섹션 */}
-      <div className="container mx-auto px-4 py-12 md:py-20">
-        <div className="text-center max-w-4xl mx-auto">
-          {/* 실시간 카운터 */}
-          <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full mb-6"
-          >
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="font-semibold">
-              오늘 {todayCount.toLocaleString()}명이 측정했습니다
-            </span>
-          </motion.div>
-          
-          {/* 메인 헤드라인 */}
-          <motion.h1 
-            className="text-4xl md:text-6xl font-bold text-gray-900 mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            내 비즈니스,<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              지금 얼마일까?
-            </span>
-          </motion.h1>
-          
-          <motion.p 
-            className="text-xl text-gray-600 mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            5,795개 실제 거래 데이터로 측정하는 정확한 가치
-          </motion.p>
-          
-          {/* CTA 버튼 */}
-          <motion.button
-            onClick={() => router.push('/valuation')}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-bold hover:shadow-xl transform hover:scale-105 transition-all"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            무료로 가치 측정하기
-            <ChevronRight className="inline-block ml-2 w-5 h-5" />
-          </motion.button>
-          
-          {/* 긴급성 메시지 */}
-          <AnimatePresence>
-            {showUrgency && (
-              <motion.p 
-                className="mt-4 text-red-600 font-medium"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                ⚡ 24시간 한정 무료 (이후 ₩99,000)
-              </motion.p>
-            )}
-          </AnimatePresence>
-          
-          {/* 신뢰 지표 */}
-          <div className="flex items-center justify-center gap-6 mt-8 text-sm text-gray-500">
-            <span className="flex items-center gap-1">
-              <Users className="w-4 h-4" />
-              누적 12,384명
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              평균 2분 47초
-            </span>
-            <span className="flex items-center gap-1">
-              <TrendingUp className="w-4 h-4" />
-              평균 가치 1.8억
-            </span>
-          </div>
+      {/* Real-time notification - Toss style */}
+      <div className="bg-blue-50 border-b border-blue-100">
+        <div className="container mx-auto px-4 py-3">
+          <p className="text-sm text-blue-700 text-center font-medium animate-fadeIn">
+            ⚡ {notification || '서울의 유튜버가 2.3억 달성'}
+          </p>
         </div>
-        
-        {/* 호기심 유발 섹션 */}
-        <motion.div 
-          className="mt-20 text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">
-            당신은 평균보다 높을까요, 낮을까요?
-          </h2>
+      </div>
+
+      {/* Main content */}
+      <main className="container mx-auto px-4 py-12 md:py-20">
+        <div className="max-w-2xl mx-auto">
           
-          {/* 블러 처리된 순위표 */}
-          <div className="relative max-w-2xl mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent z-10 pointer-events-none" />
-            <div className="filter blur-sm">
-              <div className="bg-white rounded-lg shadow-lg p-6 space-y-4 opacity-70">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                  <span className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-yellow-500" />
-                    <span className="font-medium">1위</span>
-                    <span className="text-gray-600">YouTube</span>
-                  </span>
-                  <span className="font-bold">12.3억</span>
+          {/* Real-time counter - Toss style badge */}
+          <div className="flex justify-center mb-8 animate-slideUp">
+            <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-sm font-medium text-gray-700">
+                오늘 <span className="text-blue-600 font-bold">{todayCount.toLocaleString()}</span>명이 측정 중
+              </span>
+            </div>
+          </div>
+          
+          {/* Main headline - Toss style typography */}
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-center mb-4 animate-slideUp" 
+              style={{ animationDelay: '0.1s' }}>
+            내 비즈니스,
+            <br />
+            <span className="text-blue-600">진짜 가치</span>는 얼마?
+          </h1>
+          
+          <p className="text-lg text-gray-600 text-center mb-10 animate-slideUp"
+             style={{ animationDelay: '0.2s' }}>
+            실제 거래 데이터로 측정하는 정확한 가치
+          </p>
+          
+          {/* CTA button - Toss style */}
+          <div className="flex justify-center mb-12 animate-slideUp"
+               style={{ animationDelay: '0.3s' }}>
+            <button
+              onClick={() => router.push('/valuation')}
+              className="group relative px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
+            >
+              <span className="flex items-center gap-2">
+                무료 가치 측정 시작
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            </button>
+          </div>
+
+          {/* Trust indicators - Toss style cards */}
+          <div className="grid grid-cols-3 gap-4 mb-16 animate-slideUp"
+               style={{ animationDelay: '0.4s' }}>
+            <div className="bg-white rounded-2xl p-4 text-center border border-gray-100">
+              <div className="text-2xl font-bold text-gray-900">12,384</div>
+              <div className="text-xs text-gray-500 mt-1">검증된 거래</div>
+            </div>
+            <div className="bg-white rounded-2xl p-4 text-center border border-gray-100">
+              <div className="text-2xl font-bold text-gray-900">94.2%</div>
+              <div className="text-xs text-gray-500 mt-1">정확도</div>
+            </div>
+            <div className="bg-white rounded-2xl p-4 text-center border border-gray-100">
+              <div className="text-2xl font-bold text-gray-900">3분</div>
+              <div className="text-xs text-gray-500 mt-1">측정 시간</div>
+            </div>
+          </div>
+
+          {/* Industry average values - Toss style list */}
+          <div className="bg-white rounded-3xl p-6 border border-gray-100 animate-slideUp"
+               style={{ animationDelay: '0.5s' }}>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              업종별 평균 가치
+            </h3>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
+                    <span className="text-lg">📺</span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">유튜브</div>
+                    <div className="text-xs text-gray-500">구독자 10만 기준</div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                  <span className="flex items-center gap-2">
-                    <span className="text-gray-400">2위</span>
-                    <span className="text-gray-600">SaaS</span>
-                  </span>
-                  <span className="font-bold">8.7억</span>
+                <div className="text-right">
+                  <div className="font-bold text-gray-900">3.0억</div>
+                  <div className="text-xs text-blue-600">x2.5 배수</div>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                  <span className="flex items-center gap-2">
-                    <span className="text-gray-400">3위</span>
-                    <span className="text-gray-600">이커머스</span>
-                  </span>
-                  <span className="font-bold">6.2억</span>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                    <span className="text-lg">📷</span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">인스타그램</div>
+                    <div className="text-xs text-gray-500">팔로워 5만 기준</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-gray-900">1.5억</div>
+                  <div className="text-xs text-blue-600">x2.0 배수</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <span className="text-lg">💻</span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">SaaS</div>
+                    <div className="text-xs text-gray-500">MRR 2천만원 기준</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-gray-900">9.6억</div>
+                  <div className="text-xs text-blue-600">x4.0 배수</div>
                 </div>
               </div>
             </div>
             
-            <div className="absolute inset-0 flex items-center justify-center z-20">
-              <button
-                onClick={() => router.push('/valuation')}
-                className="bg-white/95 backdrop-blur px-6 py-3 rounded-full font-bold text-gray-900 shadow-lg hover:bg-white transition-all"
-              >
-                측정 후 확인 가능
-              </button>
-            </div>
+            <button
+              onClick={() => router.push('/valuation')}
+              className="w-full mt-4 py-3 text-blue-600 font-medium rounded-xl hover:bg-blue-50 transition-colors"
+            >
+              내 비즈니스 가치 확인하기 →
+            </button>
           </div>
-        </motion.div>
-      </div>
+
+        </div>
+      </main>
     </div>
   );
 }

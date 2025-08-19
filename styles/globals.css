@@ -1,0 +1,253 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== SIMPLIFIED COLOR SYSTEM (Medium Style) ===== */
+:root {
+  /* Primary Colors - Only 3 colors allowed */
+  --primary-green: #1A8917;    /* Medium green for CTAs */
+  --text-black: #191919;       /* Almost black for headlines */
+  --pure-white: #FFFFFF;       /* Pure white for backgrounds */
+  
+  /* Grayscale Only */
+  --gray-900: #191919;         /* Headings */
+  --gray-700: #424242;         /* Body text */
+  --gray-500: #757575;         /* Secondary text */
+  --gray-300: #E0E0E0;         /* Borders */
+  --gray-100: #F5F5F5;         /* Subtle backgrounds */
+  
+  /* Typography Scale - Only 3 sizes */
+  --text-title: 32px;          /* Page titles */
+  --text-body: 16px;           /* Body text */
+  --text-small: 14px;          /* Captions */
+  
+  /* Spacing Scale - 8px grid */
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+}
+
+/* ===== GLOBAL RESET ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background-color: var(--pure-white);
+  color: var(--gray-700);
+  font-size: var(--text-body);
+  overflow-x: hidden;
+}
+
+/* ===== SIMPLIFIED TYPOGRAPHY ===== */
+.text-title {
+  font-size: var(--text-title);
+  font-weight: 700;
+  color: var(--text-black);
+  line-height: 1.2;
+  margin-bottom: var(--space-sm);
+}
+
+.text-body {
+  font-size: var(--text-body);
+  font-weight: 400;
+  color: var(--gray-700);
+  line-height: 1.6;
+  margin-bottom: var(--space-sm);
+}
+
+.text-small {
+  font-size: var(--text-small);
+  font-weight: 400;
+  color: var(--gray-500);
+  line-height: 1.4;
+}
+
+/* ===== SIMPLIFIED BUTTONS ===== */
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: var(--text-body);
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--primary-green);
+  color: var(--pure-white);
+}
+
+.btn-secondary {
+  background-color: var(--pure-white);
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+/* ===== SIMPLIFIED LAYOUT ===== */
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 var(--space-sm);
+}
+
+.section {
+  padding: var(--space-xl) 0;
+}
+
+.section-sm {
+  padding: var(--space-lg) 0;
+}
+
+/* ===== SIMPLIFIED FORMS ===== */
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  font-size: var(--text-body);
+  background-color: var(--pure-white);
+  color: var(--text-black);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 1px var(--primary-green);
+}
+
+.input::placeholder {
+  color: var(--gray-500);
+}
+
+/* ===== SIMPLIFIED CARDS ===== */
+.card {
+  background-color: var(--pure-white);
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  padding: var(--space-md);
+}
+
+.card-simple {
+  background-color: var(--gray-100);
+  padding: var(--space-sm);
+  border-radius: 4px;
+}
+
+/* ===== SIMPLIFIED PROGRESS ===== */
+.progress {
+  width: 100%;
+  height: 4px;
+  background-color: var(--gray-300);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--primary-green);
+  transition: width 0.3s ease;
+}
+
+/* ===== SIMPLIFIED MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(25, 25, 25, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-sm);
+}
+
+.modal {
+  background-color: var(--pure-white);
+  border-radius: 8px;
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 400px;
+}
+
+/* ===== UTILITIES ===== */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.mt-xs { margin-top: var(--space-xs); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+
+.mb-xs { margin-bottom: var(--space-xs); }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+
+.hidden { display: none; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 640px) {
+  :root {
+    --text-title: 28px;
+    --text-body: 16px;
+    --text-small: 14px;
+    --space-sm: 12px;
+    --space-md: 20px;
+    --space-lg: 28px;
+    --space-xl: 40px;
+  }
+  
+  .container {
+    padding: 0 var(--space-sm);
+  }
+  
+  .btn {
+    padding: 14px 24px;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ===== REMOVE ALL COMPLEX EFFECTS ===== */
+/* No gradients, no shadows, no complex animations */
+/* No rounded-full, no backdrop-blur, no transform effects */
+/* Keep it simple and clean like Medium */

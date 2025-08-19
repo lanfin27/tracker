@@ -1,86 +1,63 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { valuationMultiples } from '@/lib/valuation-multiples';
 
 const businessTypes = [
-  { id: 'youtube', name: '유튜브', icon: '📺', badge: '1' },
-  { id: 'instagram', name: '인스타그램', icon: '📷', badge: '2' },
-  { id: 'tiktok', name: '틱톡', icon: '🎵', badge: '3' },
-  { id: 'ecommerce', name: '이커머스', icon: '🛍️', badge: '4' },
-  { id: 'saas', name: 'SaaS/앱', icon: '💻', badge: '5' },
-  { id: 'blog', name: '블로그/콘텐츠', icon: '✍️', badge: '6' },
-  { id: 'website', name: '웹사이트', icon: '🌐', badge: '7' }
+  { id: 'youtube', name: '유튜브', icon: '📺', desc: '평균 3억', color: 'red' },
+  { id: 'instagram', name: '인스타그램', icon: '📷', desc: '평균 1.5억', color: 'purple' },
+  { id: 'tiktok', name: '틱톡', icon: '🎵', desc: '평균 1.8억', color: 'pink' },
+  { id: 'ecommerce', name: '이커머스', icon: '🛍️', desc: '평균 5억', color: 'orange' },
+  { id: 'saas', name: 'SaaS', icon: '💻', desc: '평균 9.6억', color: 'blue' },
+  { id: 'blog', name: '블로그', icon: '✍️', desc: '평균 2억', color: 'green' },
+  { id: 'website', name: '웹사이트', icon: '🌐', desc: '평균 3억', color: 'indigo' }
 ];
 
 export default function BusinessTypeStep({ value, onChange, onNext }: any) {
   const handleSelect = (type: string) => {
     onChange('businessType', type);
-    
-    // 햅틱 피드백
-    if ('vibrate' in navigator) {
-      navigator.vibrate(50);
-    }
-    
-    // 자동 다음 단계
-    setTimeout(onNext, 300);
+    setTimeout(onNext, 200);
   };
 
   return (
-    <div>
-      <motion.h1 
-        className="text-toss-h1 text-toss-gray-900 mb-3"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        어떤 비즈니스를<br />운영하시나요?
-      </motion.h1>
+    <div className="animate-slideUp">
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        어떤 비즈니스를 운영하시나요?
+      </h2>
+      <p className="text-gray-600 mb-8">
+        업종에 따른 정확한 가치 측정을 위해 필요해요
+      </p>
       
-      <motion.p 
-        className="text-toss-body text-toss-gray-600 mb-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
-        가장 가까운 유형을 선택해주세요
-      </motion.p>
-
       <div className="grid grid-cols-2 gap-3">
-        {businessTypes.map((type, index) => (
-          <motion.button
-            key={type.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.05 }}
-            onClick={() => handleSelect(type.id)}
-            className={`
-              relative p-5 bg-white border-2 rounded-toss-lg
-              hover:border-toss-blue hover:bg-toss-blue-lighter
-              active:scale-[0.98] transition-all duration-200
-              ${value.businessType === type.id ? 'border-toss-blue bg-toss-blue-lighter' : 'border-toss-gray-100'}
-            `}
-          >
-            {/* 숫자 배지 */}
-            <span className="absolute top-3 left-3 w-6 h-6 bg-toss-gray-700 text-white text-xs font-bold rounded-full flex items-center justify-center">
-              {type.badge}
-            </span>
-            
-            {/* 선택 체크 */}
-            {value.businessType === type.id && (
-              <motion.span 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="absolute top-3 right-3 w-6 h-6 bg-toss-blue text-white rounded-full flex items-center justify-center"
-              >
-                ✓
-              </motion.span>
-            )}
-            
-            <div className="text-3xl mb-2">{type.icon}</div>
-            <div className="text-toss-body font-semibold text-toss-gray-900">
-              {type.name}
-            </div>
-          </motion.button>
-        ))}
+        {businessTypes.map((type) => {
+          const bgColor = type.color === 'red' ? 'bg-red-50' :
+                          type.color === 'purple' ? 'bg-purple-50' :
+                          type.color === 'pink' ? 'bg-pink-50' :
+                          type.color === 'orange' ? 'bg-orange-50' :
+                          type.color === 'blue' ? 'bg-blue-50' :
+                          type.color === 'green' ? 'bg-green-50' :
+                          type.color === 'indigo' ? 'bg-indigo-50' : 'bg-gray-50';
+          
+          return (
+            <button
+              key={type.id}
+              onClick={() => handleSelect(type.id)}
+              className={`
+                group relative bg-white border-2 rounded-2xl p-4 transition-all duration-200
+                ${value.businessType === type.id 
+                  ? 'border-blue-500 shadow-md' 
+                  : 'border-gray-200 hover:border-blue-500 hover:shadow-md'}
+              `}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <div className={`w-12 h-12 ${bgColor} rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform`}>
+                  {type.icon}
+                </div>
+                <div className="text-sm font-semibold text-gray-900">{type.name}</div>
+                <div className="text-xs text-gray-500">{type.desc}</div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -33,8 +33,8 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     businessType,
     monthlyRevenue,
     monthlyProfit,
-    subscribers,
-    growthRate,
+    subscribers = 0,
+    growthRate = 'stable',
     businessAge
   } = input;
 
