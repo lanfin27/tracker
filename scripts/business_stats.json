@@ -1,0 +1,30 @@
+{
+  "content": {
+    "count": 1256,
+    "avgPrice": 85239,
+    "medianPrice": 7012,
+    "minPrice": 100,
+    "maxPrice": 14280000
+  },
+  "saas": {
+    "count": 1357,
+    "avgPrice": 205999,
+    "medianPrice": 8000,
+    "minPrice": 100,
+    "maxPrice": 15300000
+  },
+  "ecommerce": {
+    "count": 2364,
+    "avgPrice": 120836,
+    "medianPrice": 10800,
+    "minPrice": 100,
+    "maxPrice": 20145000
+  },
+  "other": {
+    "count": 576,
+    "avgPrice": 250096,
+    "medianPrice": 7000,
+    "minPrice": 100,
+    "maxPrice": 36050000
+  }
+}

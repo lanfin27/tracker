@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { calculateBusinessValue } from '@/lib/valuation-multiples';
 import { calculateSNSValue } from '@/lib/sns-valuation-multiples';
+import { calculateRealBusinessValue } from '@/lib/real-valuation-service';
+import type { ValuationResult } from '@/lib/supabase-types';
 import confetti from 'canvas-confetti';
 
 export default function ResultPage() {
@@ -19,42 +21,97 @@ export default function ResultPage() {
   const [weeklyEmail, setWeeklyEmail] = useState('');
   const [stage, setStage] = useState(1);
   const [businessData, setBusinessData] = useState<any>(null);
+  const [realDataStats, setRealDataStats] = useState<any>(null);
+  const [confidence, setConfidence] = useState<'high' | 'medium' | 'low'>('medium');
+  const [dataCount, setDataCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [usedMethod, setUsedMethod] = useState<'revenue' | 'profit' | 'fallback'>('revenue');
   
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem('valuation_data') || '{}');
-    if (!data.businessType) {
-      router.push('/valuation');
-      return;
-    }
+    const loadResults = async () => {
+      const data = JSON.parse(localStorage.getItem('valuation_data') || '{}');
+      if (!data.businessType) {
+        router.push('/valuation');
+        return;
+      }
+      
+      setBusinessData(data);
+      setLoading(true);
+      
+      try {
+        console.log('🚀 실제 데이터 기반 가치 계산 시작...');
+        
+        // 실제 데이터 기반 가치 계산
+        const result: ValuationResult = await calculateRealBusinessValue(
+          data.businessType,
+          data.monthlyRevenue,
+          data.monthlyProfit,
+          data.subscribers,
+          data.businessAge
+        );
+        
+        console.log('✅ 계산 완료:', result);
+        
+        setFinalValue(result.value);
+        setRanking(result.ranking);
+        setRealDataStats(result.statistics);
+        setDataCount(result.dataCount);
+        setConfidence(result.confidence);
+        setUsedMethod(result.usedMethod);
+        
+        // 경쟁자 생성 (유사 거래 기반)
+        if (result.similarTransactions && result.similarTransactions.length > 0) {
+          const comps = result.similarTransactions.slice(0, 3).map((trans, idx) => ({
+            position: idx === 0 ? 'below' : idx === 1 ? 'above' : 'target',
+            value: trans.price,
+            rank: idx + 1,
+            difference: Math.abs(trans.price - result.value),
+            isAbove: trans.price > result.value,
+            percentile: ((trans.price / result.value) * 50).toFixed(1)
+          }));
+          setCompetitors(comps);
+        } else {
+          // 폴백 경쟁자 생성
+          generateRealCompetitors(result.value, data, []);
+        }
+        
+        // 카운트업 애니메이션 시작
+        animateCountUp(result.value);
+        setLoading(false);
+        
+      } catch (error) {
+        console.error('❌ 실제 데이터 조회 실패, 폴백 사용:', error);
+        
+        // 폴백: 기존 로직 사용
+        const isSNS = ['youtube', 'instagram', 'tiktok'].includes(data.businessType);
+        let calculatedValue: number;
+        
+        if (isSNS && data.subscribers) {
+          const snsResult = calculateSNSValue(data);
+          calculatedValue = snsResult.final.moderate;
+        } else {
+          calculatedValue = calculateBusinessValue(
+            data.businessType,
+            data.monthlyRevenue,
+            data.monthlyProfit,
+            data.subscribers || 0,
+            data.businessAge
+          );
+        }
+        
+        setFinalValue(calculatedValue);
+        calculateRankingAndCompetitors(calculatedValue, data);
+        setConfidence('low');
+        setLoading(false);
+        
+        // 폴백 카운트업 애니메이션
+        animateCountUp(calculatedValue);
+      }
+    };
     
-    setBusinessData(data);
+    loadResults();
     
-    // 가치 계산
-    let calculatedValue: number;
-    const isSNS = ['youtube', 'instagram', 'tiktok'].includes(data.businessType);
-    
-    if (isSNS && data.subscribers) {
-      const snsResult = calculateSNSValue(data);
-      calculatedValue = snsResult.final.moderate;
-    } else {
-      calculatedValue = calculateBusinessValue(
-        data.businessType,
-        data.monthlyRevenue,
-        data.monthlyProfit,
-        data.subscribers || 0,
-        data.businessAge
-      );
-    }
-    
-    setFinalValue(calculatedValue);
-    
-    // 순위 계산
-    calculateRankingAndCompetitors(calculatedValue, data);
-    
-    // 카운트업 애니메이션
-    animateCountUp(calculatedValue);
-    
-    // Confetti 효과
+    // 애니메이션 및 단계적 공개
     setTimeout(() => {
       confetti({
         particleCount: 100,
@@ -63,7 +120,6 @@ export default function ResultPage() {
       });
     }, 800);
     
-    // 단계적 공개
     setTimeout(() => setStage(2), 2000);
     setTimeout(() => setStage(3), 4000);
     
@@ -74,6 +130,49 @@ export default function ResultPage() {
       setStage(4);
     }
   }, [router]);
+  
+  // 실제 경쟁자 생성 함수
+  const generateRealCompetitors = (value: number, data: any, similarTransactions: any[]) => {
+    const competitors = [];
+    
+    if (similarTransactions && similarTransactions.length >= 2) {
+      // 실제 유사 거래 기반 경쟁자
+      const sorted = similarTransactions.sort((a, b) => a.price - b.price);
+      
+      for (let i = 0; i < Math.min(3, sorted.length); i++) {
+        const transaction = sorted[i];
+        competitors.push({
+          position: i === 0 ? 'below' : i === 1 ? 'above' : 'target',
+          value: transaction.price,
+          rank: Math.floor(Math.random() * 1000) + 100,
+          difference: Math.abs(transaction.price - value),
+          isAbove: transaction.price > value,
+          percentile: (50 + (Math.random() - 0.5) * 40).toFixed(1)
+        });
+      }
+    } else {
+      // 폴백: 기존 로직
+      const generateCompetitor = (offsetPercent: number, position: string) => {
+        const competitorValue = value * (1 + offsetPercent);
+        return {
+          position,
+          value: competitorValue,
+          rank: Math.floor(Math.random() * 1000) + 100,
+          difference: Math.abs(competitorValue - value),
+          isAbove: competitorValue > value,
+          percentile: (50 + (Math.random() - 0.5) * 40).toFixed(1)
+        };
+      };
+      
+      competitors.push(
+        generateCompetitor(-0.12, 'below'),
+        generateCompetitor(0.08, 'above'), 
+        generateCompetitor(0.25, 'target')
+      );
+    }
+    
+    setCompetitors(competitors);
+  };
   
   const animateCountUp = (target: number) => {
     const duration = 2000;
@@ -95,6 +194,7 @@ export default function ResultPage() {
   const formatValue = (value: number): string => {
     if (value >= 100000000) return `${(value / 100000000).toFixed(1)}억`;
     if (value >= 10000000) return `${(value / 10000000).toFixed(0)}천만`;
+    if (value >= 1000000) return `${(value / 1000000).toFixed(0)}백만`;
     return `${(value / 10000).toFixed(0)}만`;
   };
   
@@ -207,12 +307,40 @@ export default function ResultPage() {
         <div className="bg-white rounded-2xl p-6 mb-3 animate-fadeIn">
           <div className="text-center">
             <p className="text-sm text-gray-500 mb-2">당신의 비즈니스 가치</p>
-            <div className="text-5xl font-bold text-blue-600 mb-1">
-              ₩{formatValue(countUpValue)}
-            </div>
+            {loading && dataCount === 0 ? (
+              <div className="py-4">
+                <div className="inline-flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm text-gray-600">실제 데이터 분석 중...</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-5xl font-bold text-blue-600 mb-1">
+                ₩{formatValue(countUpValue)}
+              </div>
+            )}
             <p className="text-xs text-gray-500">
               * 매출, 수익{businessData && ['youtube', 'instagram', 'tiktok'].includes(businessData.businessType) ? ', 구독자 수' : ''} 종합 평가
             </p>
+            {dataCount > 0 && (
+              <div className="mt-3 flex flex-col items-center gap-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${
+                    confidence === 'high' ? 'bg-green-500' : 
+                    confidence === 'medium' ? 'bg-yellow-500' : 'bg-red-500'
+                  }`}></div>
+                  <p className="text-xs font-medium text-blue-700">
+                    실제 {dataCount.toLocaleString()}건 거래 데이터 기반
+                  </p>
+                </div>
+                {realDataStats && (
+                  <div className="flex items-center gap-3 text-xs text-gray-600">
+                    <span>수익배수: {realDataStats.avg_revenue_multiple?.toFixed(1)}x</span>
+                    <span>이익배수: {realDataStats.avg_profit_multiple?.toFixed(1)}x</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         
@@ -265,6 +393,51 @@ export default function ResultPage() {
                 <div className={`absolute top-1/2 -translate-y-1/2 ${Number(ranking.percentile) > 50 ? 'right-2' : 'left-2'}`}>
                   <span className="text-xs text-white font-bold">나</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* 실제 데이터 통계 표시 */}
+        {stage >= 2 && realDataStats && dataCount > 0 && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 mb-3 animate-slideUp">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-gray-900">🎯 실제 시장 데이터</p>
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                confidence === 'high' ? 'bg-green-100 text-green-700' :
+                confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                'bg-red-100 text-red-700'
+              }`}>
+                {confidence === 'high' ? '높은 신뢰도' :
+                 confidence === 'medium' ? '중간 신뢰도' : '낮은 신뢰도'}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-gray-600 mb-1">평균 거래가</p>
+                <p className="text-sm font-bold text-gray-900">
+                  ₩{formatValue(realDataStats.avg_price)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600 mb-1">중간값</p>
+                <p className="text-sm font-bold text-gray-900">
+                  ₩{formatValue(realDataStats.median_price)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600 mb-1">사용된 배수</p>
+                <p className="text-sm font-bold text-blue-600">
+                  {usedMethod === 'revenue' ? `수익 ${realDataStats.avg_revenue_multiple?.toFixed(1)}x` :
+                   usedMethod === 'profit' ? `이익 ${realDataStats.avg_profit_multiple?.toFixed(1)}x` :
+                   '폴백 방식'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600 mb-1">데이터 수</p>
+                <p className="text-sm font-bold text-gray-900">
+                  {dataCount.toLocaleString()}건
+                </p>
               </div>
             </div>
           </div>

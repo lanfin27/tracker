@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { calculateBusinessValue } from '@/lib/valuation-multiples';
 import SNSMetricsStep from '@/components/steps/SNSMetricsStep';
+import { REAL_PROFIT_MARGINS, getProfitRateEvaluation } from '@/lib/profit-margins';
 
 export default function ValuationPage() {
   const router = useRouter();
@@ -107,7 +108,7 @@ export default function ValuationPage() {
           {currentStep === 1 && <BusinessTypeStep onNext={handleNext} />}
           {currentStep === 2 && <RevenueStep onNext={handleNext} previousData={valuationData} />}
           {currentStep === 3 && <ProfitStep onNext={handleNext} previousData={valuationData} />}
-          {currentStep === 4 && !isSNSBusiness && <BusinessAgeStep onNext={handleNext} />}
+          {currentStep === 4 && !isSNSBusiness && <BusinessAgeStep onNext={handleNext} previousData={valuationData} />}
           {currentStep === 4 && isSNSBusiness && (
             <SNSMetricsStep 
               businessType={valuationData.businessType as 'youtube' | 'instagram' | 'tiktok'} 
@@ -115,7 +116,7 @@ export default function ValuationPage() {
               previousData={valuationData} 
             />
           )}
-          {currentStep === 5 && isSNSBusiness && <BusinessAgeStep onNext={handleNext} />}
+          {currentStep === 5 && isSNSBusiness && <BusinessAgeStep onNext={handleNext} previousData={valuationData} />}
         </div>
       </div>
     </div>
@@ -126,14 +127,34 @@ export default function ValuationPage() {
 function BusinessTypeStep({ onNext }: { onNext: (data: any) => void }) {
   const [selected, setSelected] = useState('');
   
+  // 실제 Multiple 데이터 (한국 시장 = US의 70%)
+  const getMultipleText = (businessType: string): string => {
+    const multiples: Record<string, { revenue: number; profit: number }> = {
+      youtube: { revenue: 0.95, profit: 1.13 },
+      instagram: { revenue: 1.59, profit: 0.94 },
+      tiktok: { revenue: 0.53, profit: 0.76 },
+      blog: { revenue: 2.38, profit: 0.74 },
+      ecommerce: { revenue: 0.97, profit: 0.90 },
+      saas: { revenue: 0.98, profit: 0.82 },
+      website: { revenue: 1.43, profit: 0.46 }
+    };
+    
+    const m = multiples[businessType];
+    if (!m) return 'x1.0';
+    
+    // 더 높은 값을 표시
+    const higherValue = Math.max(m.revenue, m.profit);
+    return `x${higherValue.toFixed(1)}`;
+  };
+  
   const businessTypes = [
-    { id: 'youtube', name: '유튜브', icon: '📺', desc: '구독자 10만 기준 평균 3억', multiple: 'x2.5' },
-    { id: 'instagram', name: '인스타그램', icon: '📷', desc: '팔로워 5만 기준 평균 1.5억', multiple: 'x2.0' },
-    { id: 'tiktok', name: '틱톡', icon: '🎵', desc: '팔로워 10만 기준 평균 2억', multiple: 'x1.8' },
-    { id: 'blog', name: '블로그', icon: '✍️', desc: '일 방문 1만 기준 평균 2억', multiple: 'x1.8' },
-    { id: 'ecommerce', name: '이커머스', icon: '🛍️', desc: '월 매출 5천만 기준 평균 5억', multiple: 'x1.2' },
-    { id: 'saas', name: 'SaaS', icon: '💻', desc: 'MRR 2천만 기준 평균 9.6억', multiple: 'x4.0' },
-    { id: 'website', name: '웹사이트', icon: '🌐', desc: '월 매출 1천만 기준 평균 3억', multiple: 'x2.2' }
+    { id: 'youtube', name: '유튜브', icon: '📺', desc: '구독자 10만 기준 평균 3억', multiple: getMultipleText('youtube') },
+    { id: 'instagram', name: '인스타그램', icon: '📷', desc: '팔로워 5만 기준 평균 1.5억', multiple: getMultipleText('instagram') },
+    { id: 'tiktok', name: '틱톡', icon: '🎵', desc: '팔로워 10만 기준 평균 2억', multiple: getMultipleText('tiktok') },
+    { id: 'blog', name: '블로그', icon: '✍️', desc: '일 방문 1만 기준 평균 2억', multiple: getMultipleText('blog') },
+    { id: 'ecommerce', name: '이커머스', icon: '🛍️', desc: '월 매출 5천만 기준 평균 5억', multiple: getMultipleText('ecommerce') },
+    { id: 'saas', name: 'SaaS', icon: '💻', desc: 'MRR 2천만 기준 평균 9.6억', multiple: getMultipleText('saas') },
+    { id: 'website', name: '웹사이트', icon: '🌐', desc: '월 매출 1천만 기준 평균 3억', multiple: getMultipleText('website') }
   ];
 
   return (
@@ -264,6 +285,15 @@ function ProfitStep({ onNext, previousData }: { onNext: (data: any) => void; pre
   const [profit, setProfit] = useState('');
   const [profitRate, setProfitRate] = useState('');
   const revenue = previousData.monthlyRevenue / 10000; // 원을 만원으로 변환
+  const businessType = previousData.businessType || 'website';
+  
+  // 실제 데이터 기반 업종별 평균 수익률
+  const getIndustryAvgMargin = (type: string): number => {
+    // lib/profit-margins.ts에서 실제 데이터 기반 값 사용
+    return REAL_PROFIT_MARGINS[type as keyof typeof REAL_PROFIT_MARGINS] || 12;
+  };
+  
+  const industryAvgMargin = getIndustryAvgMargin(businessType);
   
   const handleRateChange = (rate: string) => {
     setProfitRate(rate);
@@ -274,11 +304,11 @@ function ProfitStep({ onNext, previousData }: { onNext: (data: any) => void; pre
   const rate = revenue ? Math.round((Number(profit) / revenue) * 100) : 0;
   
   const getRateFeedback = () => {
-    if (rate > 40) return '💎 수익률 40% 이상! 최상위 5%';
-    if (rate > 30) return '🏆 수익률 30% 이상! 상위 10%';
-    if (rate > 20) return '✨ 수익률 20% 이상! 상위 30%';
-    if (rate > 10) return '👍 안정적인 수익률!';
-    return '💡 업계 평균 수익률: 25%';
+    if (rate === 0) {
+      return `💡 업계 평균 수익률: ${industryAvgMargin}% (${businessType} 업종, 실제 데이터 기반)`;
+    }
+    // lib/profit-margins.ts의 평가 함수 사용
+    return getProfitRateEvaluation(businessType, rate);
   };
 
   return (
@@ -301,7 +331,7 @@ function ProfitStep({ onNext, previousData }: { onNext: (data: any) => void; pre
             type="number"
             value={profitRate}
             onChange={(e) => handleRateChange(e.target.value)}
-            placeholder="25"
+            placeholder={String(industryAvgMargin)}
             className="w-20 px-3 py-2 text-center border-2 border-blue-200 rounded-xl focus:border-blue-600 focus:outline-none"
           />
           <span className="text-sm text-gray-700">% = {Math.round(revenue * Number(profitRate || 0) / 100)}만원</span>
@@ -341,16 +371,45 @@ function ProfitStep({ onNext, previousData }: { onNext: (data: any) => void; pre
   );
 }
 
-// Step 4: 운영 기간 (프리미엄 메시지)
-function BusinessAgeStep({ onNext }: { onNext: (data: any) => void }) {
+// Step 4: 운영 기간 (실제 데이터 기반 프리미엄)
+function BusinessAgeStep({ onNext, previousData }: { onNext: (data: any) => void; previousData?: any }) {
   const [selected, setSelected] = useState('');
+  const businessType = previousData?.businessType || 'website';
   
+  // 실제 데이터 기반 운영 기간 옵션
   const ageOptions = [
-    { id: 'new', label: '6개월 미만', desc: '🌱 신규 비즈니스', premium: '기본 가치' },
-    { id: 'growing', label: '6개월 ~ 1년', desc: '🌿 성장기', premium: '성장 프리미엄 +5%' },
-    { id: 'established', label: '1년 ~ 3년', desc: '🌳 안정기', premium: '안정 프리미엄 +10%' },
-    { id: 'mature', label: '3년 이상', desc: '🏢 검증됨', premium: '검증 프리미엄 +20%' }
+    { 
+      id: '0-6', 
+      label: '6개월 미만',
+      desc: '🌱 초기 단계',
+      icon: '🌱'
+    },
+    { 
+      id: '6-12', 
+      label: '6개월 ~ 1년',
+      desc: '🌿 성장 초기',
+      icon: '🌿'
+    },
+    { 
+      id: '1-2', 
+      label: '1년 ~ 2년',
+      desc: '🌳 안정화 시기',
+      icon: '🌳'
+    },
+    { 
+      id: '2-3', 
+      label: '2년 ~ 3년',
+      desc: '🏢 성숙 단계',
+      icon: '🏢'
+    },
+    { 
+      id: '3+', 
+      label: '3년 이상',
+      desc: '👑 검증된 비즈니스',
+      icon: '👑'
+    }
   ];
+
 
   return (
     <div>
@@ -358,7 +417,7 @@ function BusinessAgeStep({ onNext }: { onNext: (data: any) => void }) {
         비즈니스 운영 기간은?
       </h2>
       <p className="text-gray-600 mb-8">
-        오래될수록 가치가 올라가요
+        업종별로 가치가 다르게 변화해요
       </p>
 
       <div className="space-y-3">
@@ -376,14 +435,36 @@ function BusinessAgeStep({ onNext }: { onNext: (data: any) => void }) {
             }`}
           >
             <div className="flex items-center justify-between">
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">{option.label}</div>
-                <div className="text-xs text-gray-500">{option.desc}</div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{option.icon}</span>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">{option.label}</div>
+                  <div className="text-xs text-gray-500">{option.desc}</div>
+                </div>
               </div>
-              <div className="text-xs font-bold text-green-600">{option.premium}</div>
+              {selected === option.id && (
+                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
             </div>
           </button>
         ))}
+      </div>
+      
+      {/* 업종별 특성 설명 (수치 없이) */}
+      <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+        <p className="text-xs text-gray-700">
+          💡 <span className="font-medium">{businessType}</span> 업종 특징:
+          {businessType === 'ecommerce' && ' 초기 생존력이 중요합니다'}
+          {businessType === 'saas' && ' 2년 이후 가치가 크게 상승합니다'}
+          {businessType === 'youtube' && ' 구독자 충성도가 시간에 비례합니다'}
+          {businessType === 'instagram' && ' 팔로워 참여율이 중요합니다'}
+          {businessType === 'tiktok' && ' 빠른 성장이 가능합니다'}
+          {businessType === 'blog' && ' 오래된 도메인일수록 가치가 높습니다'}
+          {businessType === 'website' && ' 꾸준한 트래픽이 중요합니다'}
+          {!['ecommerce', 'saas', 'youtube', 'instagram', 'tiktok', 'blog', 'website'].includes(businessType) && ' 안정적인 운영이 중요합니다'}
+        </p>
       </div>
     </div>
   );

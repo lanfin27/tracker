@@ -1,0 +1,39 @@
+{
+  "rawMargins": {},
+  "uiCategoryMargins": {
+    "content": {
+      "margin": 15,
+      "count": 0
+    },
+    "ecommerce": {
+      "margin": 10,
+      "count": 0
+    },
+    "saas": {
+      "margin": 20,
+      "count": 0
+    },
+    "other": {
+      "margin": 10,
+      "count": 0
+    }
+  },
+  "finalMargins": {
+    "youtube": 18,
+    "instagram": 15,
+    "tiktok": 14,
+    "blog": 12,
+    "ecommerce": 10,
+    "saas": 20,
+    "website": 10,
+    "other": 10
+  },
+  "metadata": {
+    "totalRecords": 5795,
+    "usedRecords": 0,
+    "confidence": "LOW",
+    "calculatedAt": "2025-08-23T13:01:57.471Z",
+    "dataSource": "classified_flippa_data.xlsx",
+    "koreanAdjustment": 0.7
+  }
+}

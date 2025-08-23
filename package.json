@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "analyze-data": "node scripts/analyze-flippa-data.js",
+    "import-data": "node scripts/import-to-supabase.js",
+    "fix-data": "node scripts/analyze-flippa-data-fixed.js",
+    "fix-import": "node scripts/import-to-supabase-fixed.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
@@ -18,6 +22,7 @@
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "dotenv": "^17.2.1",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.307.0",
     "next": "14.2.13",
@@ -27,6 +32,7 @@
     "recharts": "^2.10.3",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
+    "xlsx": "^0.18.5",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
