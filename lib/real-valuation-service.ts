@@ -5,176 +5,104 @@ import { getBusinessAgeMultiplier, validateAgeMultipliers } from './business-age
 import { getBusinessMultiples, validateMultiples } from './business-multiples';
 
 /**
- * 실제 거래 데이터 기반 비즈니스 가치 계산 (극단적 하향 버전)
- * 126억원 같은 비현실적 금액 완전 제거
+ * 단순화된 비즈니스 가치 계산
+ * Profit이 있으면 Profit Multiple, 없으면 Revenue Multiple 사용
  */
 export async function calculateRealBusinessValue(
   businessType: string,
-  monthlyRevenueManwon: number,
-  monthlyProfitManwon: number,
+  monthlyRevenueManwon: number,  // 만원 단위
+  monthlyProfitManwon: number,   // 만원 단위
   subscribers?: number,
   businessAge?: string
 ): Promise<ValuationResult> {
   
-  console.log('====== 가치 계산 시작 (극단 하향 버전) ======');
+  console.log('====== 간단한 가치 계산 ======');
   console.log('입력값:', {
     businessType,
-    monthlyRevenue: monthlyRevenueManwon + '만원',
-    monthlyProfit: monthlyProfitManwon + '만원'
+    월매출: `${monthlyRevenueManwon}만원`,
+    월수익: `${monthlyProfitManwon}만원`,
+    운영기간: businessAge || '1-2'
   });
   
-  // 0원 처리
+  // 0 체크
   if (!monthlyRevenueManwon || monthlyRevenueManwon <= 0) {
-    console.log('매출 0원 → 가치 0원');
-    return getZeroValue();
+    return { value: 0, percentile: 0 } as ValuationResult;
   }
   
-  // 1. 비즈니스 타입 매핑
-  const dbBusinessType = BusinessTypeMapping[businessType as keyof typeof BusinessTypeMapping] || 'other';
-  
-  // 2. 실제 Multiple 데이터 가져오기 (NEW!)
+  // Multiple 가져오기
   const multiples = getBusinessMultiples(businessType);
-  
-  console.log('📊 적용 Multiple:');
-  console.log(`   Revenue: ${multiples.revenue.toFixed(2)}x`);
-  console.log(`   Profit: ${multiples.profit.toFixed(2)}x`);
-  console.log(`   출처: ${multiples.source}`);
-    
-  // 3. 연간 금액 (원 단위)
-  const annualRevenueKRW = monthlyRevenueManwon * 12 * CURRENCY.KRW_TO_WON;
-  const annualProfitKRW = monthlyProfitManwon * 12 * CURRENCY.KRW_TO_WON;
-  
-  console.log('연간 금액:', {
-    revenue: (annualRevenueKRW / 100000000).toFixed(2) + '억원',
-    profit: (annualProfitKRW / 100000000).toFixed(2) + '억원'
+  console.log('Multiple:', {
+    revenue: multiples.revenue.toFixed(3),
+    profit: multiples.profit.toFixed(3)
   });
   
-  // 4. 가치 계산 (실제 Multiple 사용)
-  let calculatedValue = 0;
-  let usedMethod: 'revenue' | 'profit' | 'combined' = 'revenue';
+  // 연간 금액 (만원 단위 유지!)
+  const annualRevenueManwon = monthlyRevenueManwon * 12;
+  const annualProfitManwon = monthlyProfitManwon * 12;
   
-  // Profit 기반 계산
-  let profitValue = 0;
-  if (annualProfitKRW > 0 && multiples.profit > 0) {
-    profitValue = annualProfitKRW * multiples.profit;
-    console.log(`💰 Profit 기반: ${(profitValue / 100000000).toFixed(2)}억원 (${multiples.profit.toFixed(2)}x)`);
-  }
+  let baseValueManwon = 0;  // 만원 단위
+  let method = '';
   
-  // Revenue 기반 계산
-  let revenueValue = 0;
-  if (annualRevenueKRW > 0 && multiples.revenue > 0) {
-    revenueValue = annualRevenueKRW * multiples.revenue;
-    console.log(`💵 Revenue 기반: ${(revenueValue / 100000000).toFixed(2)}억원 (${multiples.revenue.toFixed(2)}x)`);
-  }
-  
-  // 더 높은 값 사용
-  if (profitValue > revenueValue && profitValue > 0) {
-    calculatedValue = profitValue;
-    usedMethod = 'profit';
-  } else if (revenueValue > 0) {
-    calculatedValue = revenueValue;
-    usedMethod = 'revenue';
+  // 간단한 로직: Profit이 있으면 Profit 기준, 없으면 Revenue 기준
+  if (monthlyProfitManwon > 0) {
+    // Profit 기준 계산
+    baseValueManwon = annualProfitManwon * multiples.profit;
+    method = 'Profit Multiple';
+    console.log(`Profit 기준: ${annualProfitManwon}만원 × ${multiples.profit.toFixed(3)} = ${baseValueManwon.toFixed(0)}만원`);
   } else {
-    // 폴백: 매출 기반 계산
-    calculatedValue = annualRevenueKRW * 1.0;
-    usedMethod = 'revenue';
+    // Revenue 기준 계산
+    baseValueManwon = annualRevenueManwon * multiples.revenue;
+    method = 'Revenue Multiple';
+    console.log(`Revenue 기준: ${annualRevenueManwon}만원 × ${multiples.revenue.toFixed(3)} = ${baseValueManwon.toFixed(0)}만원`);
   }
   
-  console.log(`✅ 선택된 방식: ${usedMethod} = ${(calculatedValue / 100000000).toFixed(2)}억원`);
-    
-  // 5. 이익률 보정 (선택적)
-  const profitMargin = monthlyRevenueManwon > 0 
-    ? (monthlyProfitManwon / monthlyRevenueManwon) * 100 
-    : 0;
+  // 운영 기간 프리미엄 적용  
+  const ageMultiplier = getSimpleAgeMultiplier(businessType, businessAge || '1-2');
+  baseValueManwon = baseValueManwon * ageMultiplier;
+  console.log(`운영기간 적용: × ${ageMultiplier} = ${baseValueManwon.toFixed(0)}만원`);
   
-  if (profitMargin > 70) {
-    calculatedValue *= 1.1; // 10% 프리미엄
-    console.log('고수익률 보정 (+10%)');
+  // 원 단위로 변환 (마지막에만!)
+  let finalValueKRW = baseValueManwon * 10000;
+  
+  // 상한선 체크 (월매출의 100배 이하)
+  const maxValueKRW = monthlyRevenueManwon * 100 * 10000;
+  if (finalValueKRW > maxValueKRW) {
+    console.log(`⚠️ 상한선 적용: ${(maxValueKRW / 100000000).toFixed(1)}억원`);
+    finalValueKRW = maxValueKRW;
   }
-    
-  // 6. 운영 기간 프리미엄 (백엔드에서만 적용, UI에 표시 안 함)
-  const ageData = getBusinessAgeMultiplier(businessType, businessAge || 'established');
-  const ageMultiplier = ageData.multiplier;
   
-  console.log(`⏰ 운영 기간 프리미엄 (내부 적용):`);
-  console.log(`   기간: ${businessAge || 'established'}`);
-  console.log(`   배수: ${ageMultiplier}x (UI 숨김)`);
-  console.log(`   설명: ${ageData.explanation}`);
-  
-  // 트렌드별 차별 적용
-  if (ageData.trend === 'increasing') {
-    calculatedValue = calculatedValue * ageMultiplier;
-    console.log(`   적용: 성장 트렌드 - 100% 적용`);
-  } else if (ageData.trend === 'stable') {
-    calculatedValue = calculatedValue * (1 + (ageMultiplier - 1) * 0.8);
-    console.log(`   적용: 안정 트렌드 - 80% 적용`);
-  } else {
-    calculatedValue = calculatedValue * (1 + (ageMultiplier - 1) * 0.6);
-    console.log(`   적용: 변동성 트렌드 - 60% 적용`);
-  }
-    
-  // 7. 구독자 보정 (Content 타입만)
-  if ((businessType === 'youtube' || businessType === 'instagram' || businessType === 'tiktok' || businessType === 'blog') && subscribers && subscribers > 10000) {
-    const subMultiplier = getSubscriberMultiplier(subscribers);
-    calculatedValue *= subMultiplier;
-    console.log(`👥 구독자 보정: ${subMultiplier}x`);
-    }
-    
-  // 8. 최종 가치 범위 제한
-  const minValue = monthlyRevenueManwon * 12 * 10000 * 0.3;  // 연매출의 30%
-  const maxValue = monthlyRevenueManwon * 12 * 10000 * 5;    // 연매출의 5배
-  
-  calculatedValue = Math.max(minValue, Math.min(calculatedValue, maxValue));
-  
-  console.log('가치 범위:', {
-    최소: (minValue / 100000000).toFixed(2) + '억원',
-    최대: (maxValue / 100000000).toFixed(2) + '억원',
-    최종: (calculatedValue / 100000000).toFixed(2) + '억원'
-  });
-  
-  console.log(`====== 최종 가치: ${(calculatedValue / 100000000).toFixed(2)}억원 ======`);
-  
-  // 백분위 계산
-  const percentile = calculatePercentile(calculatedValue, businessType);
+  console.log(`====== 최종: ${(finalValueKRW / 100000000).toFixed(1)}억원 ======`);
   
   return {
-    value: Math.round(calculatedValue),
-    percentile,
-    ranking: {
-      nationalRank: Math.round(5553 * (100 - percentile) / 100),
-      industryRank: Math.round(1000 * (100 - percentile) / 100),
-      totalUsers: 5553,
-      industryTotal: 1000,
-      percentile
-    },
-    statistics: {
-      business_type: businessType,
-      transaction_count: 5795,
-      avg_price: calculatedValue,
-      median_price: calculatedValue,
-      avg_revenue_multiple: multiples.revenue,
-      avg_profit_multiple: multiples.profit,
-      min_price: minValue,
-      max_price: maxValue,
-      percentile_25: 0,
-      percentile_75: 0,
-      percentile_90: 0
-    },
-    similarTransactions: [],
-    confidence: 'high',
-    dataCount: 5795,
-    usedMethod,
-    // ageMultiplier는 반환하지 않음 (UI에 표시 안 함)
-  };
+    value: Math.round(finalValueKRW),
+    percentile: calculateSimplePercentile(finalValueKRW)
+  } as ValuationResult;
     
 }
 
-// 백분위 계산 함수
-function calculatePercentile(value: number, businessType: string): number {
-  // 간단한 백분위 계산 (실제로는 더 정교한 로직 필요)
-  const basePercentile = 50;
-  const adjustment = Math.min(30, (value / 100000000) * 10); // 1억당 10%
-  return Math.min(95, basePercentile + adjustment);
+// 간단한 운영기간 배수
+function getSimpleAgeMultiplier(businessType: string, age: string): number {
+  // 기본값
+  const defaultMultipliers: Record<string, number> = {
+    '0-6': 0.9,
+    '6-12': 0.95,
+    '1-2': 1.0,
+    '2-3': 1.1,
+    '3+': 1.2
+  };
+  
+  return defaultMultipliers[age] || 1.0;
+}
+
+// 간단한 백분위
+function calculateSimplePercentile(valueKRW: number): number {
+  const valueOk = valueKRW / 100000000; // 억원 단위
+  
+  if (valueOk < 0.5) return 20;   // 5천만원 미만
+  if (valueOk < 1) return 40;     // 1억원 미만
+  if (valueOk < 3) return 60;     // 3억원 미만
+  if (valueOk < 10) return 80;    // 10억원 미만
+  return 90;                       // 10억원 이상
 }
 
 /**

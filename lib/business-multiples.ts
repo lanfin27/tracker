@@ -1,5 +1,5 @@
 /**
- * 실제 Flippa 데이터에서 계산된 Revenue/Profit Multiples
+ * 실제 거래 데이터에서 계산된 Revenue/Profit Multiples
  * 데이터 소스: classified_flippa_data.xlsx (5,795건)
  * 계산 방법: 각 카테고리별 price/revenue, price/(profit*12) 평균
  */
@@ -76,7 +76,7 @@ export function getBusinessMultiples(businessType: string): {
     
     return {
       ...multiples,
-      source: 'Flippa 실제 데이터'
+      source: '실제 거래 데이터'
     };
   }
   

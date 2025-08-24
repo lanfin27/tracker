@@ -42,11 +42,10 @@ export default function ResultPage() {
         console.log('🚀 실제 데이터 기반 가치 계산 시작...');
         
         // 실제 데이터 기반 가치 계산
-        // 🔴 중요: localStorage는 원 단위, 함수는 만원 단위 기대!
         const result: ValuationResult = await calculateRealBusinessValue(
           data.businessType,
-          data.monthlyRevenue / 10000,  // 원 → 만원 변환
-          data.monthlyProfit / 10000,   // 원 → 만원 변환
+          data.monthlyRevenue,
+          data.monthlyProfit,
           data.subscribers,
           data.businessAge
         );
@@ -192,40 +191,11 @@ export default function ResultPage() {
     }, duration / steps);
   };
   
-  // 정밀한 금액 포맷팅 함수
   const formatValue = (value: number): string => {
-    if (value >= 100000000) {
-      // 1억원 이상 - 소수점 둘째 자리까지
-      const okValue = value / 100000000;
-      
-      if (okValue >= 1000) {
-        // 1000억원 이상 - 정수로 표시
-        return `${okValue.toFixed(0).toLocaleString()}억원`;
-      } else if (okValue >= 100) {
-        // 100억원 이상 - 소수점 첫째 자리
-        return `${okValue.toFixed(1)}억원`;
-      } else if (okValue >= 10) {
-        // 10억원 이상 100억원 미만 - 소수점 둘째 자리
-        return `${okValue.toFixed(2)}억원`;
-      } else {
-        // 1억원 이상 10억원 미만 - 소수점 둘째 자리
-        return `${okValue.toFixed(2)}억원`;
-      }
-    } else {
-      // 1억원 미만 - 만원 단위로 정확히 표시
-      const manwon = Math.round(value / 10000);
-      
-      if (manwon === 0) {
-        return '0원';
-      } else if (manwon >= 10000) {
-        // 1억원에 가까운 경우 (9,500만원 이상)
-        const okValue = value / 100000000;
-        return `${okValue.toFixed(2)}억원`;
-      } else {
-        // 천단위 구분자 추가
-        return `${manwon.toLocaleString()}만원`;
-      }
-    }
+    if (value >= 100000000) return `${(value / 100000000).toFixed(1)}억`;
+    if (value >= 10000000) return `${(value / 10000000).toFixed(0)}천만`;
+    if (value >= 1000000) return `${(value / 1000000).toFixed(0)}백만`;
+    return `${(value / 10000).toFixed(0)}만`;
   };
   
   const calculateRankingAndCompetitors = (value: number, data: any) => {
