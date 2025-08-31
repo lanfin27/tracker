@@ -173,6 +173,12 @@ export default function Home() {
     ];
     
     setRecentMeasurements(initialData);
+    
+    // Cleanup 함수 반환
+    return () => {
+      cleanupScroll?.();
+      cleanupTime?.();
+    };
   }, []);
   
   // Real-time updates
@@ -220,8 +226,6 @@ export default function Home() {
       clearInterval(measurementInterval);
       clearInterval(titleInterval);
       clearInterval(transactionInterval);
-      cleanupScroll?.();
-      cleanupTime?.();
     };
   }, [mounted, titlePhrases.length]);
 
