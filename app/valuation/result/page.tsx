@@ -340,12 +340,12 @@ export default function ResultPage() {
             {loading && dataCount === 0 ? (
               <div className="py-4">
                 <div className="inline-flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
                   <span className="text-sm text-gray-600">실제 데이터 분석 중...</span>
                 </div>
               </div>
             ) : (
-              <div className="text-5xl font-bold text-blue-600 mb-1">
+              <div className="text-5xl font-bold text-purple-600 mb-1">
                 ₩{formatValue(countUpValue)}
               </div>
             )}
@@ -354,12 +354,12 @@ export default function ResultPage() {
             </p>
             {dataCount > 0 && (
               <div className="mt-3 flex flex-col items-center gap-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 rounded-full">
                   <div className={`w-2 h-2 rounded-full animate-pulse ${
                     confidence === 'high' ? 'bg-green-500' : 
                     confidence === 'medium' ? 'bg-yellow-500' : 'bg-red-500'
                   }`}></div>
-                  <p className="text-xs font-medium text-blue-700">
+                  <p className="text-xs font-medium text-purple-700">
                     실제 {dataCount.toLocaleString()}건 거래 데이터 기반
                   </p>
                 </div>
@@ -382,7 +382,7 @@ export default function ResultPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {ranking.nationalRank.toLocaleString()}위
               </p>
-              <p className="text-xs text-blue-600 font-medium">
+              <p className="text-xs text-purple-600 font-medium">
                 상위 {ranking.percentile}%
               </p>
             </div>
@@ -404,7 +404,7 @@ export default function ResultPage() {
           <div className="bg-white rounded-2xl p-4 mb-3 animate-slideUp">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-900">평균 대비 위치</span>
-              <span className="text-sm font-bold text-blue-600">
+              <span className="text-sm font-bold text-purple-600">
                 {Number(ranking.percentile) > 50 ? '+' : ''}{((Number(ranking.percentile) - 50) * 2).toFixed(0)}%
               </span>
             </div>
@@ -414,7 +414,7 @@ export default function ResultPage() {
                 <div className="text-xs text-gray-500 whitespace-nowrap">평균</div>
               </div>
               <div 
-                className="absolute top-0 h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg transition-all duration-1000"
+                className="absolute top-0 h-full bg-purple-600 rounded-lg transition-all duration-1000"
                 style={{
                   left: Number(ranking.percentile) > 50 ? '50%' : `${ranking.percentile}%`,
                   right: Number(ranking.percentile) > 50 ? `${100 - Number(ranking.percentile)}%` : '50%'
@@ -430,7 +430,7 @@ export default function ResultPage() {
         
         {/* 실제 데이터 통계 표시 */}
         {stage >= 2 && realDataStats && dataCount > 0 && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 mb-3 animate-slideUp">
+          <div className="bg-purple-50 rounded-2xl p-4 mb-3 animate-slideUp">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-gray-900">🎯 실제 시장 데이터</p>
               <span className={`text-xs px-2 py-1 rounded-full font-medium ${
@@ -457,7 +457,7 @@ export default function ResultPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-600 mb-1">사용된 배수</p>
-                <p className="text-sm font-bold text-blue-600">
+                <p className="text-sm font-bold text-purple-600">
                   {usedMethod === 'revenue' ? `수익 ${realDataStats.avg_revenue_multiple?.toFixed(1)}x` :
                    usedMethod === 'profit' ? `이익 ${realDataStats.avg_profit_multiple?.toFixed(1)}x` :
                    '폴백 방식'}
@@ -482,7 +482,7 @@ export default function ResultPage() {
                 <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold ${
-                      comp.isAbove ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
+                      comp.isAbove ? 'bg-red-50 text-red-600' : 'bg-purple-50 text-purple-600'
                     }`}>
                       {comp.rank}
                     </div>
@@ -495,7 +495,7 @@ export default function ResultPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-gray-900">{formatValue(comp.value)}</p>
-                    <p className={`text-xs ${comp.isAbove ? 'text-red-600' : 'text-blue-600'}`}>
+                    <p className={`text-xs ${comp.isAbove ? 'text-red-600' : 'text-purple-600'}`}>
                       {comp.isAbove ? '+' : '-'}{formatValue(comp.difference)}
                     </p>
                   </div>
@@ -523,11 +523,11 @@ export default function ResultPage() {
                   <div className="space-y-1">
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-gray-600">6개월 후</span>
-                      <span className="text-xs font-bold text-green-600">{formatValue(finalValue * 1.3)}</span>
+                      <span className="text-xs font-bold text-purple-600">{formatValue(finalValue * 1.3)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-gray-600">1년 후</span>
-                      <span className="text-xs font-bold text-blue-600">{formatValue(finalValue * 1.8)}</span>
+                      <span className="text-xs font-bold text-purple-600">{formatValue(finalValue * 1.8)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-gray-600">2년 후</span>
@@ -549,7 +549,7 @@ export default function ResultPage() {
                           key={idx}
                           className={`flex-1 rounded-t ${
                             idx === Math.floor(14 * (Number(ranking?.percentile) || 50) / 100)
-                              ? 'bg-blue-600' 
+                              ? 'bg-purple-600' 
                               : 'bg-gray-200'
                           }`}
                           style={{ height: `${height}%` }}
@@ -557,10 +557,10 @@ export default function ResultPage() {
                       ))}
                     </div>
                     <div 
-                      className="absolute top-0 h-full w-0.5 bg-blue-600"
+                      className="absolute top-0 h-full w-0.5 bg-purple-600"
                       style={{ left: `${ranking?.percentile || 50}%` }}
                     >
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-bold text-blue-600 whitespace-nowrap">
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-bold text-purple-600 whitespace-nowrap">
                         여기!
                       </div>
                     </div>
@@ -586,7 +586,7 @@ export default function ResultPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-gray-600">예상 인수가</p>
-                        <p className="text-sm font-bold text-green-600">{formatValue(finalValue * 1.15)}</p>
+                        <p className="text-sm font-bold text-purple-600">{formatValue(finalValue * 1.15)}</p>
                       </div>
                     </div>
                   </div>
@@ -595,9 +595,9 @@ export default function ResultPage() {
                       <p className="text-xs text-gray-500">빠른</p>
                       <p className="text-xs font-bold text-orange-600">{formatValue(finalValue * 0.9)}</p>
                     </div>
-                    <div className="text-center p-1 bg-blue-50 rounded">
+                    <div className="text-center p-1 bg-purple-50 rounded">
                       <p className="text-xs text-gray-500">최적</p>
-                      <p className="text-xs font-bold text-blue-600">{formatValue(finalValue * 1.15)}</p>
+                      <p className="text-xs font-bold text-purple-600">{formatValue(finalValue * 1.15)}</p>
                     </div>
                     <div className="text-center p-1 bg-purple-50 rounded">
                       <p className="text-xs text-gray-500">프리미엄</p>
@@ -629,7 +629,7 @@ export default function ResultPage() {
                   <div className="mt-2 space-y-1">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full" style={{width: '46%'}}></div>
+                        <div className="h-full bg-purple-500 rounded-full" style={{width: '46%'}}></div>
                       </div>
                       <span className="text-xs font-bold text-gray-600">46%</span>
                     </div>
@@ -665,7 +665,7 @@ export default function ResultPage() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <button
                     onClick={() => setShowEmailModal(true)}
-                    className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-medium shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105"
+                    className="px-8 py-4 bg-purple-600 text-white rounded-2xl font-medium shadow-lg hover:bg-purple-700 hover:shadow-xl transition-all transform hover:scale-105"
                   >
                     🔓 상세 분석 전체 보기
                   </button>
@@ -677,7 +677,7 @@ export default function ResultPage() {
         
         {/* 새로운 섹션: 주간 리포트 구독 */}
         {stage >= 3 && (
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-4 mb-3 animate-slideUp">
+          <div className="bg-purple-50 rounded-2xl p-4 mb-3 animate-slideUp">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h3 className="text-sm font-bold text-gray-900 mb-1">
@@ -707,7 +707,7 @@ export default function ResultPage() {
           <div className="space-y-2 mb-3">
             <button
               onClick={() => setShowEmailModal(true)}
-              className="w-full py-4 bg-blue-600 text-white rounded-2xl font-medium"
+              className="w-full py-4 bg-purple-600 text-white rounded-2xl font-medium hover:bg-purple-700 transition-colors"
             >
               무료로 전체 분석 받기
             </button>
@@ -773,13 +773,13 @@ export default function ResultPage() {
               placeholder="이메일 주소"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-600 focus:outline-none mb-3 text-sm"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none mb-3 text-sm"
               autoFocus
             />
             
             <button
               onClick={handleEmailSubmit}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium mb-2"
+              className="w-full py-3 bg-purple-600 text-white rounded-xl font-medium mb-2 hover:bg-purple-700 transition-colors"
             >
               무료로 받기
             </button>

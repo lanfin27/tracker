@@ -16,6 +16,23 @@ export default function Home() {
     timeAgo: string;
   }>>([]);
   
+  // 동적 타이틀 문구들
+  const titlePhrases = [
+    { main: "내 비즈니스,", sub: "진짜 가치", end: "는 얼마?" },
+    { main: "사업가격?", sub: "딸깍, 30초면", end: " 뚝딱" },
+    { main: "내 계정,", sub: "지금 팔면", end: " 얼마 받을까?" },
+    { main: "내 유튜브 채널", sub: "시세가", end: " 몇 억이라고?" },
+    { main: "내 유튜브 채널이", sub: "1억", end: "이라고?" },
+    { main: "팔로워 10만인", sub: "내 계정은", end: " 얼마?" },
+    { main: "당신은 상위 5%일까요,", sub: "하위 95%", end: "일까요?" },
+    { main: "내 채널", sub: "진짜 얼마", end: " 짜린지 아세요?" },
+    { main: "남들은 자기 채널 값 아는데…", sub: "당신만", end: " 몰라요?" },
+    { main: "딸깍!", sub: "2분이면 내 사업 가격", end: " 뚝딱 공개" }
+  ];
+  
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  
   // 실시간 측정 데이터 생성 함수 - 현실적인 범위로 수정
   const generateRecentMeasurements = () => {
     // 현실적인 비즈니스 타입별 가치 범위 (억원 단위)
@@ -150,6 +167,16 @@ export default function Home() {
       setRecentMeasurements(generateRecentMeasurements());
     }, 10000);
     
+    // 타이틀 문구 자동 변경 (4초마다)
+    const titleInterval = setInterval(() => {
+      setIsAnimating(true);
+      
+      setTimeout(() => {
+        setCurrentPhraseIndex((prev) => (prev + 1) % titlePhrases.length);
+        setIsAnimating(false);
+      }, 300); // 페이드 아웃 시간
+    }, 4000);
+    
     const notifications = [
       '방금 전 유튜버가 1.2억 달성',
       '1분 전 이커머스가 2.3억 측정',
@@ -174,9 +201,10 @@ export default function Home() {
     return () => {
       clearInterval(notificationInterval);
       clearInterval(measurementInterval);
+      clearInterval(titleInterval);
       clearInterval(transactionInterval);
     };
-  }, [mounted]);
+  }, [mounted, titlePhrases.length]);
 
   // 실제 데이터 기반 예시 계산
   const getRealisticExamples = () => {
@@ -222,11 +250,11 @@ export default function Home() {
   const examples = getRealisticExamples();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Real-time notification - Toss style */}
-      <div className="bg-blue-50 border-b border-blue-100">
+      <div className="bg-purple-50 border-b border-purple-100">
         <div className="container mx-auto px-4 py-3">
-          <p className="text-sm text-blue-700 text-center font-medium animate-fadeIn">
+          <p className="text-sm text-purple-700 text-center font-medium animate-fadeIn">
             ⚡ {notification || '방금 전 유튜버가 1.2억 달성'}
           </p>
         </div>
@@ -246,12 +274,14 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Main headline - Toss style typography */}
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-center mb-4 animate-slideUp" 
+          {/* Main headline - Dynamic text with animation */}
+          <h1 className={`text-4xl md:text-5xl font-bold text-gray-900 text-center mb-4 min-h-[120px] md:min-h-[140px] flex flex-col justify-center transition-opacity duration-300 ${
+              isAnimating ? 'opacity-0' : 'opacity-100'
+            }`}
               style={{ animationDelay: '0.1s' }}>
-            내 비즈니스,
-            <br />
-            <span className="text-blue-600">진짜 가치</span>는 얼마?
+            <span className="block">{titlePhrases[currentPhraseIndex].main}</span>
+            <span className="text-purple-600">{titlePhrases[currentPhraseIndex].sub}</span>
+            <span>{titlePhrases[currentPhraseIndex].end}</span>
           </h1>
           
           <p className="text-lg text-gray-600 text-center mb-10 animate-slideUp"
@@ -264,7 +294,7 @@ export default function Home() {
                style={{ animationDelay: '0.3s' }}>
             <button
               onClick={() => router.push('/valuation')}
-              className="group relative px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
+              className="group relative px-8 py-4 bg-purple-600 text-white rounded-2xl font-semibold text-lg shadow-lg hover:bg-purple-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
             >
               <span className="flex items-center gap-2">
                 무료 가치 측정 시작
@@ -321,7 +351,7 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-xl font-bold text-blue-600">
+                    <div className="text-xl font-bold text-purple-600">
                       {measurement.value}
                     </div>
                   </div>
@@ -356,7 +386,7 @@ export default function Home() {
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-gray-900">{examples.youtube.value}</div>
-                  <div className="text-xs text-blue-600">x{examples.youtube.multiple} 배수</div>
+                  <div className="text-xs text-purple-600">x{examples.youtube.multiple} 배수</div>
                 </div>
               </div>
               
@@ -372,13 +402,13 @@ export default function Home() {
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-gray-900">{examples.instagram.value}</div>
-                  <div className="text-xs text-blue-600">x{examples.instagram.multiple} 배수</div>
+                  <div className="text-xs text-green-600">x{examples.instagram.multiple} 배수</div>
                 </div>
               </div>
               
               <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
                     <span className="text-lg">💻</span>
                   </div>
                   <div>
@@ -388,14 +418,14 @@ export default function Home() {
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-gray-900">{examples.saas.value}</div>
-                  <div className="text-xs text-blue-600">x{examples.saas.multiple} 배수</div>
+                  <div className="text-xs text-green-600">x{examples.saas.multiple} 배수</div>
                 </div>
               </div>
             </div>
             
             <button
               onClick={() => router.push('/valuation')}
-              className="w-full mt-4 py-3 text-blue-600 font-medium rounded-xl hover:bg-blue-50 transition-colors"
+              className="w-full mt-4 py-3 text-purple-600 font-medium rounded-xl hover:bg-purple-50 transition-colors"
             >
               내 비즈니스 가치 확인하기 →
             </button>

@@ -65,7 +65,7 @@ export default function ValuationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* 토스 스타일 헤더 */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="container mx-auto px-4">
@@ -87,7 +87,7 @@ export default function ValuationPage() {
           {/* 프로그레스 바 */}
           <div className="h-1 bg-gray-100">
             <div 
-              className="h-full bg-blue-600 transition-all duration-500 ease-out"
+              className="h-full bg-purple-600 transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -97,8 +97,8 @@ export default function ValuationPage() {
       {/* 컨텐츠 영역 */}
       <div className="container mx-auto px-4 py-8 max-w-lg">
         {/* 심리적 훅 메시지 */}
-        <div className={`mb-8 p-4 bg-blue-50 rounded-2xl border border-blue-100 transition-all duration-300 ${isAnimating ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>
-          <p className="text-sm text-blue-700 text-center font-medium">
+        <div className={`mb-8 p-4 bg-purple-50 rounded-2xl border border-purple-100 transition-all duration-300 ${isAnimating ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>
+          <p className="text-sm text-purple-700 text-center font-medium">
             💡 {stepMessages[currentStep as keyof typeof stepMessages]}
           </p>
         </div>
@@ -176,7 +176,7 @@ function BusinessTypeStep({ onNext }: { onNext: (data: any) => void }) {
             }}
             className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 ${
               selected === type.id 
-                ? 'border-blue-600 bg-blue-50' 
+                ? 'border-purple-600 bg-purple-50' 
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
             }`}
           >
@@ -188,7 +188,7 @@ function BusinessTypeStep({ onNext }: { onNext: (data: any) => void }) {
                   <div className="text-xs text-gray-500">{type.desc}</div>
                 </div>
               </div>
-              <div className="text-xs font-bold text-blue-600">{type.multiple}</div>
+              <div className="text-xs font-bold text-purple-600">{type.multiple}</div>
             </div>
           </button>
         ))}
@@ -253,7 +253,7 @@ function RevenueStep({ onNext, previousData }: { onNext: (data: any) => void; pr
           value={revenue}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="0"
-          className="w-full px-6 py-4 text-2xl font-bold text-center border-2 border-gray-200 rounded-2xl focus:border-blue-600 focus:outline-none transition-colors"
+          className="w-full px-6 py-4 text-2xl font-bold text-center border-2 border-gray-200 rounded-2xl focus:border-purple-600 focus:outline-none transition-colors"
           autoFocus
         />
         <span className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500">
@@ -270,7 +270,7 @@ function RevenueStep({ onNext, previousData }: { onNext: (data: any) => void; pr
         disabled={!revenue || Number(revenue) <= 0}
         className={`w-full mt-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 ${
           revenue && Number(revenue) > 0
-            ? 'bg-blue-600 text-white hover:bg-blue-700'
+            ? 'bg-purple-600 text-white hover:bg-purple-700'
             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
         }`}
       >
@@ -321,8 +321,8 @@ function ProfitStep({ onNext, previousData }: { onNext: (data: any) => void; pre
       </p>
 
       {/* 수익률 계산기 */}
-      <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-        <p className="text-sm font-medium text-blue-900 mb-3">
+      <div className="mb-6 p-4 bg-green-50 rounded-2xl border border-green-100">
+        <p className="text-sm font-medium text-green-900 mb-3">
           💡 수익률로 계산하기
         </p>
         <div className="flex items-center gap-2">
@@ -332,7 +332,7 @@ function ProfitStep({ onNext, previousData }: { onNext: (data: any) => void; pre
             value={profitRate}
             onChange={(e) => handleRateChange(e.target.value)}
             placeholder={String(industryAvgMargin)}
-            className="w-20 px-3 py-2 text-center border-2 border-blue-200 rounded-xl focus:border-blue-600 focus:outline-none"
+            className="w-20 px-3 py-2 text-center border-2 border-green-200 rounded-xl focus:border-green-600 focus:outline-none"
           />
           <span className="text-sm text-gray-700">% = {Math.round(revenue * Number(profitRate || 0) / 100)}만원</span>
         </div>
@@ -349,7 +349,7 @@ function ProfitStep({ onNext, previousData }: { onNext: (data: any) => void; pre
           value={profit}
           onChange={(e) => setProfit(e.target.value)}
           placeholder="0"
-          className="w-full px-6 py-4 text-2xl font-bold text-center border-2 border-gray-200 rounded-2xl focus:border-blue-600 focus:outline-none transition-colors"
+          className="w-full px-6 py-4 text-2xl font-bold text-center border-2 border-gray-200 rounded-2xl focus:border-green-600 focus:outline-none transition-colors"
         />
         <span className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500">
           만원
@@ -361,7 +361,7 @@ function ProfitStep({ onNext, previousData }: { onNext: (data: any) => void; pre
         disabled={!profit}
         className={`w-full mt-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 ${
           profit
-            ? 'bg-blue-600 text-white hover:bg-blue-700'
+            ? 'bg-purple-600 text-white hover:bg-purple-700'
             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
         }`}
       >
@@ -430,7 +430,7 @@ function BusinessAgeStep({ onNext, previousData }: { onNext: (data: any) => void
             }}
             className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 ${
               selected === option.id 
-                ? 'border-blue-600 bg-blue-50' 
+                ? 'border-green-600 bg-green-50' 
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
             }`}
           >
@@ -443,7 +443,7 @@ function BusinessAgeStep({ onNext, previousData }: { onNext: (data: any) => void
                 </div>
               </div>
               {selected === option.id && (
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               )}
@@ -453,7 +453,7 @@ function BusinessAgeStep({ onNext, previousData }: { onNext: (data: any) => void
       </div>
       
       {/* 업종별 특성 설명 (수치 없이) */}
-      <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+      <div className="mt-6 p-4 bg-purple-50 rounded-xl">
         <p className="text-xs text-gray-700">
           💡 <span className="font-medium">{businessType}</span> 업종 특징:
           {businessType === 'ecommerce' && ' 초기 생존력이 중요합니다'}

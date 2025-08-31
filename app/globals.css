@@ -3,10 +3,15 @@
 @tailwind utilities;
 
 :root {
-  /* 토스 스타일 컬러 */
-  --primary: #3182F6;  /* 토스 블루 */
-  --primary-light: #E8F2FF;
-  --primary-dark: #1B64DA;
+  /* 파운더 브랜드 컬러 */
+  --primary: #9333EA;  /* 파운더 보라색 */
+  --primary-light: #F3E8FF;
+  --primary-dark: #7E22CE;
+  
+  /* 파운더 보조 컬러 */
+  --founder-green: #A3E635;
+  --founder-green-light: #D9F99D;
+  --founder-green-dark: #84CC16;
   
   /* 그레이스케일 */
   --gray-900: #191F28;  /* 타이틀 */
@@ -163,6 +168,29 @@ body {
   50% { opacity: 0.5; }
 }
 
+/* 타이틀 애니메이션 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
 .animate-slideUp {
   animation: slideUp 0.5s ease-out;
 }
@@ -256,6 +284,50 @@ body {
   background: rgba(255, 255, 255, 0.4) !important;
 }
 
+/* 파운더 단색 스타일 */
+.btn-purple {
+  background: var(--primary);
+  color: white;
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-purple:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+.btn-purple-outline {
+  background: white;
+  color: var(--primary);
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 16px;
+  border: 2px solid var(--primary-light);
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-purple-outline:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
 /* 반응형 */
 @media (max-width: 768px) {
   .container {
@@ -263,7 +335,9 @@ body {
   }
   
   .btn-primary,
-  .btn-secondary {
+  .btn-secondary,
+  .btn-purple,
+  .btn-purple-outline {
     width: 100%;
     padding: 16px;
   }

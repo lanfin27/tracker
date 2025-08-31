@@ -97,13 +97,13 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
         </p>
         
         {/* 벤치마크 표시 */}
-        <div className="mb-6 p-4 bg-blue-50 rounded-2xl">
-          <p className="text-sm font-medium text-blue-900 mb-2">
+        <div className="mb-6 p-4 bg-purple-50 rounded-2xl">
+          <p className="text-sm font-medium text-purple-900 mb-2">
             💡 평균 가치 참고
           </p>
           <div className="space-y-1">
             {currentConfig.benchmarks.map((benchmark, idx) => (
-              <div key={idx} className="flex justify-between text-sm text-blue-700">
+              <div key={idx} className="flex justify-between text-sm text-purple-700">
                 <span>{benchmark.subs.toLocaleString()}명</span>
                 <span className="font-medium">{benchmark.value}</span>
               </div>
@@ -124,7 +124,7 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
             value={subscribers}
             onChange={(e) => handleSubscriberChange(e.target.value)}
             placeholder={currentConfig.subscriberPlaceholder}
-            className="w-full px-6 py-4 text-2xl font-bold text-center border-2 border-gray-200 rounded-2xl focus:border-blue-600 focus:outline-none transition-colors"
+            className="w-full px-6 py-4 text-2xl font-bold text-center border-2 border-gray-200 rounded-2xl focus:border-purple-600 focus:outline-none transition-colors"
             autoFocus
           />
           <span className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500">
@@ -147,7 +147,7 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
           value={businessType === 'instagram' ? avgLikes : avgViews}
           onChange={(e) => businessType === 'instagram' ? setAvgLikes(e.target.value) : setAvgViews(e.target.value)}
           placeholder="0"
-          className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-600 focus:outline-none"
+          className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none"
         />
       </div>
       
@@ -167,8 +167,8 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
               onClick={() => setCategory(cat)}
               className={`p-3 rounded-xl border-2 transition-all ${
                 category === cat
-                  ? 'border-blue-600 bg-blue-50 text-blue-900'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-purple-600 bg-purple-50 text-purple-900'
+                  : 'border-gray-200 hover:border-purple-300'
               }`}
             >
               <span className="text-sm font-medium">{cat}</span>
@@ -188,7 +188,7 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
         disabled={!subscribers || Number(subscribers) <= 0}
         className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all ${
           subscribers && Number(subscribers) > 0
-            ? 'bg-blue-600 text-white hover:bg-blue-700'
+            ? 'bg-purple-600 text-white hover:bg-purple-700'
             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
         }`}
       >
