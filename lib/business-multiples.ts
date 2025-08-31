@@ -51,28 +51,79 @@ export const US_BUSINESS_MULTIPLES = {
 // 한국 시장 조정 계수
 const KOREA_ADJUSTMENT = 0.7; // 한국은 미국의 70% 수준
 
-// 한국 시장 조정된 Multiple
-export const KOREA_BUSINESS_MULTIPLES = Object.entries(US_BUSINESS_MULTIPLES).reduce((acc, [key, value]) => {
-  acc[key] = {
-    revenue: value.revenue * KOREA_ADJUSTMENT,
-    profit: value.profit * KOREA_ADJUSTMENT
-  };
-  return acc;
-}, {} as typeof US_BUSINESS_MULTIPLES);
+// 한국 시장 조정된 Multiple (타입 안전한 정적 정의)
+export const KOREA_BUSINESS_MULTIPLES = {
+  youtube: {
+    revenue: 1.360580913 * KOREA_ADJUSTMENT,
+    profit: 1.617427386 * KOREA_ADJUSTMENT
+  },
+  instagram: {
+    revenue: 2.275886525 * KOREA_ADJUSTMENT,
+    profit: 1.34893617 * KOREA_ADJUSTMENT
+  },
+  tiktok: {
+    revenue: 0.756410256 * KOREA_ADJUSTMENT,
+    profit: 1.084615385 * KOREA_ADJUSTMENT
+  },
+  blog: {
+    revenue: 3.403176342 * KOREA_ADJUSTMENT,
+    profit: 1.057612267 * KOREA_ADJUSTMENT
+  },
+  content: {
+    revenue: 3.403176342 * KOREA_ADJUSTMENT,
+    profit: 1.057612267 * KOREA_ADJUSTMENT
+  },
+  ecommerce: {
+    revenue: 1.381762546 * KOREA_ADJUSTMENT,
+    profit: 1.283108935 * KOREA_ADJUSTMENT
+  },
+  saas: {
+    revenue: 1.405504587 * KOREA_ADJUSTMENT,
+    profit: 1.170430487 * KOREA_ADJUSTMENT
+  },
+  website: {
+    revenue: 2.049699399 * KOREA_ADJUSTMENT,
+    profit: 0.658717435 * KOREA_ADJUSTMENT
+  },
+  unknown: {
+    revenue: 0.79893617 * KOREA_ADJUSTMENT,
+    profit: 1.15 * KOREA_ADJUSTMENT
+  },
+  other: {
+    revenue: 0.79893617 * KOREA_ADJUSTMENT,
+    profit: 1.15 * KOREA_ADJUSTMENT
+  },
+  newsletter: {
+    revenue: 2.0 * KOREA_ADJUSTMENT,
+    profit: 1.5 * KOREA_ADJUSTMENT
+  },
+  app: {
+    revenue: 1.8 * KOREA_ADJUSTMENT,
+    profit: 1.4 * KOREA_ADJUSTMENT
+  }
+};
 
-// Multiple 가져오기 함수
+// Multiple 가져오기 함수 (타입 안전)
 export function getBusinessMultiples(businessType: string): {
   revenue: number;
   profit: number;
   source: string;
 } {
   const type = businessType.toLowerCase();
-  const multiples = KOREA_BUSINESS_MULTIPLES[type as keyof typeof KOREA_BUSINESS_MULTIPLES];
   
-  if (multiples) {
+  // 타입 체크 추가
+  if (type in KOREA_BUSINESS_MULTIPLES) {
+    const multiples = KOREA_BUSINESS_MULTIPLES[type as keyof typeof KOREA_BUSINESS_MULTIPLES];
+    
     console.log(`📊 실제 Multiple 적용: ${type}`);
-    console.log(`   Revenue: ${multiples.revenue.toFixed(2)}x (US: ${US_BUSINESS_MULTIPLES[type as keyof typeof US_BUSINESS_MULTIPLES].revenue.toFixed(2)}x)`);
-    console.log(`   Profit: ${multiples.profit.toFixed(2)}x (US: ${US_BUSINESS_MULTIPLES[type as keyof typeof US_BUSINESS_MULTIPLES].profit.toFixed(2)}x)`);
+    console.log(`   Revenue: ${multiples.revenue.toFixed(2)}x`);
+    console.log(`   Profit: ${multiples.profit.toFixed(2)}x`);
+    
+    // US multiples도 안전하게 체크
+    if (type in US_BUSINESS_MULTIPLES) {
+      const usMultiples = US_BUSINESS_MULTIPLES[type as keyof typeof US_BUSINESS_MULTIPLES];
+      console.log(`   (US Revenue: ${usMultiples.revenue.toFixed(2)}x, US Profit: ${usMultiples.profit.toFixed(2)}x)`);
+    }
     
     return {
       ...multiples,
@@ -84,8 +135,8 @@ export function getBusinessMultiples(businessType: string): {
   console.log(`⚠️ ${type}에 대한 Multiple 데이터 없음, 기본값 사용`);
   return {
     revenue: 1.0,
-    profit: 2.0,
-    source: '기본값'
+    profit: 1.0,
+    source: 'default'
   };
 }
 
