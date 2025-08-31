@@ -3,6 +3,14 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getBusinessMultiples } from '@/lib/business-multiples';
+import { 
+  trackPageView, 
+  trackCTAClick, 
+  initScrollTracking, 
+  trackTimeOnPage,
+  EventName 
+} from '@/lib/analytics';
+import { saveUTMParams, trackPageView as trackSupabasePageView } from '@/lib/supabase';
 
 export default function Home() {
   const router = useRouter();
@@ -133,6 +141,15 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     
+    // Analytics 초기화
+    saveUTMParams();
+    trackPageView('/', 'Home');
+    trackSupabasePageView('/');
+    
+    // 스크롤 및 시간 추적 시작
+    const cleanupScroll = initScrollTracking();
+    const cleanupTime = trackTimeOnPage('home');
+    
     // 초기 데이터 설정 - 더 구체적인 금액
     const initialData = [
       {
@@ -203,6 +220,8 @@ export default function Home() {
       clearInterval(measurementInterval);
       clearInterval(titleInterval);
       clearInterval(transactionInterval);
+      cleanupScroll?.();
+      cleanupTime?.();
     };
   }, [mounted, titlePhrases.length]);
 
@@ -293,7 +312,10 @@ export default function Home() {
           <div className="flex justify-center mb-12 animate-slideUp"
                style={{ animationDelay: '0.3s' }}>
             <button
-              onClick={() => router.push('/valuation')}
+              onClick={() => {
+                trackCTAClick(EventName.CLICK_START_VALUATION, 'home_hero');
+                router.push('/valuation');
+              }}
               className="group relative px-8 py-4 bg-purple-600 text-white rounded-2xl font-semibold text-lg shadow-lg hover:bg-purple-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
             >
               <span className="flex items-center gap-2">
@@ -424,7 +446,10 @@ export default function Home() {
             </div>
             
             <button
-              onClick={() => router.push('/valuation')}
+              onClick={() => {
+                trackCTAClick(EventName.CLICK_START_VALUATION, 'home_industry_average');
+                router.push('/valuation');
+              }}
               className="w-full mt-4 py-3 text-purple-600 font-medium rounded-xl hover:bg-purple-50 transition-colors"
             >
               내 비즈니스 가치 확인하기 →

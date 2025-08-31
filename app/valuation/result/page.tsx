@@ -8,6 +8,15 @@ import { calculateSNSValue } from '@/lib/sns-valuation-multiples';
 import { calculateRealBusinessValue } from '@/lib/real-valuation-service';
 import type { ValuationResult } from '@/lib/supabase-types';
 import confetti from 'canvas-confetti';
+import { 
+  trackPageView, 
+  trackValuationResult,
+  trackEmailSubmission,
+  trackEvent,
+  trackCTAClick,
+  EventName 
+} from '@/lib/analytics';
+import { saveUTMParams, trackPageView as trackSupabasePageView } from '@/lib/supabase';
 
 export default function ResultPage() {
   const router = useRouter();
@@ -29,6 +38,11 @@ export default function ResultPage() {
   const [usedMethod, setUsedMethod] = useState<'revenue' | 'profit' | 'fallback'>('revenue');
   
   useEffect(() => {
+    // Analytics 초기화
+    saveUTMParams();
+    trackPageView('/valuation/result', 'Result');
+    trackSupabasePageView('/valuation/result');
+    
     const loadResults = async () => {
       const data = JSON.parse(localStorage.getItem('valuation_data') || '{}');
       if (!data.businessType) {
@@ -60,6 +74,19 @@ export default function ResultPage() {
         setDataCount(result.dataCount);
         setConfidence(result.confidence);
         setUsedMethod(result.usedMethod);
+        
+        // Track valuation result
+        trackValuationResult(
+          result.value,
+          data.businessType,
+          result.ranking?.percentile || 50
+        );
+        trackEvent(EventName.VIEW_RESULT_VALUE, {
+          value: result.value,
+          businessType: data.businessType,
+          confidence: result.confidence,
+          dataCount: result.dataCount
+        });
         
         // 경쟁자 생성 (유사 거래 기반)
         if (result.similarTransactions && result.similarTransactions.length > 0) {
@@ -319,16 +346,60 @@ export default function ResultPage() {
       return;
     }
     
-    localStorage.setItem('email_submitted', email);
-    setIsUnlocked(true);
-    setShowEmailModal(false);
-    setStage(4);
+    // Track email submission attempt
+    trackEvent(EventName.SUBMIT_EMAIL, { source: 'detailed_analysis' });
     
-    confetti({
-      particleCount: 200,
-      spread: 100,
-      origin: { y: 0.5 }
-    });
+    try {
+      // API 호출로 Supabase에 저장
+      const response = await fetch('/api/submit-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          type: 'detailed_analysis',
+          businessData: {
+            businessType: businessData?.businessType,
+            monthlyRevenue: businessData?.monthlyRevenue,
+            monthlyProfit: businessData?.monthlyProfit,
+            subscribers: businessData?.subscribers,
+            businessAge: businessData?.businessAge,
+            calculatedValue: finalValue,
+            percentile: ranking?.percentile
+          }
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        // Success tracking
+        trackEmailSubmission(true, 'detailed_analysis', {
+          businessType: businessData?.businessType,
+          value: finalValue
+        });
+        
+        localStorage.setItem('email_submitted', email);
+        setIsUnlocked(true);
+        setShowEmailModal(false);
+        setStage(4);
+        
+        confetti({
+          particleCount: 200,
+          spread: 100,
+          origin: { y: 0.5 }
+        });
+      } else {
+        throw new Error(result.error || 'Submission failed');
+      }
+    } catch (error) {
+      console.error('Email submission error:', error);
+      trackEmailSubmission(false, 'detailed_analysis', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      alert('이메일 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleWeeklySubmit = async () => {
@@ -337,10 +408,47 @@ export default function ResultPage() {
       return;
     }
     
-    localStorage.setItem('weekly_email', weeklyEmail);
-    setShowWeeklyModal(false);
+    // Track weekly email submission
+    trackEvent(EventName.SUBMIT_WEEKLY_EMAIL, { source: 'weekly_report' });
     
-    alert('🎉 주간 리포트 신청이 완료되었습니다!');
+    try {
+      // API 호출로 Supabase에 저장
+      const response = await fetch('/api/submit-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: weeklyEmail,
+          type: 'weekly_report',
+          businessData: {
+            businessType: businessData?.businessType
+          }
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        // Success tracking
+        trackEmailSubmission(true, 'weekly_report', {
+          businessType: businessData?.businessType
+        });
+        
+        localStorage.setItem('weekly_email', weeklyEmail);
+        setShowWeeklyModal(false);
+        
+        alert('🎉 주간 리포트 신청이 완료되었습니다!');
+      } else {
+        throw new Error(result.error || 'Submission failed');
+      }
+    } catch (error) {
+      console.error('Weekly email submission error:', error);
+      trackEmailSubmission(false, 'weekly_report', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      alert('주간 리포트 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   };
 
   return (
@@ -523,7 +631,10 @@ export default function ResultPage() {
             {/* 오버레이 - 클릭 유도 */}
             <div 
               className="absolute inset-0 flex items-center justify-center cursor-pointer bg-white/20 rounded-2xl"
-              onClick={() => setShowEmailModal(true)}
+              onClick={() => {
+                trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'competitor_overlay' });
+                setShowEmailModal(true);
+              }}
             >
               <div className="bg-purple-600 text-white px-4 py-2 rounded-xl font-medium shadow-lg hover:bg-purple-700 transition-colors text-sm">
                 🔓 전체 분석 보기
@@ -702,7 +813,10 @@ export default function ResultPage() {
                 
                 <div className="absolute inset-0 flex items-center justify-center">
                   <button
-                    onClick={() => setShowEmailModal(true)}
+                    onClick={() => {
+                      trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'detailed_analysis_overlay' });
+                      setShowEmailModal(true);
+                    }}
                     className="px-8 py-4 bg-purple-600 text-white rounded-2xl font-medium shadow-lg hover:bg-purple-700 hover:shadow-xl transition-all transform hover:scale-105"
                   >
                     🔓 상세 분석 전체 보기
@@ -731,7 +845,10 @@ export default function ResultPage() {
                 </div>
               </div>
               <button
-                onClick={() => setShowWeeklyModal(true)}
+                onClick={() => {
+                  trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'weekly_report' });
+                  setShowWeeklyModal(true);
+                }}
                 className="ml-3 px-4 py-2 bg-purple-600 text-white text-sm rounded-xl font-medium hover:bg-purple-700 transition-colors"
               >
                 구독
@@ -744,7 +861,10 @@ export default function ResultPage() {
         {!isUnlocked && stage >= 3 && (
           <div className="space-y-2 mb-3">
             <button
-              onClick={() => setShowEmailModal(true)}
+              onClick={() => {
+                trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'cta_button' });
+                setShowEmailModal(true);
+              }}
               className="w-full py-4 bg-purple-600 text-white rounded-2xl font-medium hover:bg-purple-700 transition-colors"
             >
               무료로 전체 분석 받기

@@ -5,6 +5,14 @@ import { useRouter } from 'next/navigation';
 import { calculateBusinessValue } from '@/lib/valuation-multiples';
 import SNSMetricsStep from '@/components/steps/SNSMetricsStep';
 import { REAL_PROFIT_MARGINS, getProfitRateEvaluation } from '@/lib/profit-margins';
+import { 
+  trackPageView, 
+  trackValuationStep,
+  trackBusinessTypeSelection,
+  EventName,
+  trackEvent
+} from '@/lib/analytics';
+import { saveUTMParams, trackPageView as trackSupabasePageView } from '@/lib/supabase';
 
 export default function ValuationPage() {
   const router = useRouter();
@@ -26,6 +34,16 @@ export default function ValuationPage() {
   const totalSteps = isSNSBusiness ? 5 : 4;
   const progress = (currentStep / totalSteps) * 100;
   
+  // Analytics 초기화
+  useEffect(() => {
+    saveUTMParams();
+    trackPageView('/valuation', 'Valuation');
+    trackSupabasePageView('/valuation');
+    trackEvent(EventName.VALUATION_START, {
+      timestamp: new Date().toISOString()
+    });
+  }, []);
+  
   // 각 단계별 심리적 훅 메시지
   const stepMessages = {
     1: "가장 높은 가치를 기록한 비즈니스는 SaaS입니다 💰",
@@ -40,6 +58,27 @@ export default function ValuationPage() {
     const newData = { ...valuationData, ...data };
     setValuationData(newData);
     
+    // Track step completion
+    const stepNames = ['Business Type', 'Revenue', 'Profit', 'Business Age', 'SNS Metrics'];
+    trackValuationStep(currentStep, stepNames[currentStep - 1], data);
+    
+    // Track specific events
+    if (currentStep === 1 && data.businessType) {
+      trackBusinessTypeSelection(data.businessType);
+    }
+    if (currentStep === 2 && data.monthlyRevenue) {
+      trackEvent(EventName.INPUT_REVENUE, { revenue: data.monthlyRevenue });
+    }
+    if (currentStep === 3 && data.monthlyProfit) {
+      trackEvent(EventName.INPUT_PROFIT, { profit: data.monthlyProfit });
+    }
+    if (currentStep === 4 && data.businessAge) {
+      trackEvent(EventName.INPUT_BUSINESS_AGE, { age: data.businessAge });
+    }
+    if (currentStep === 5 && data.subscribers) {
+      trackEvent(EventName.INPUT_SUBSCRIBERS, { subscribers: data.subscribers });
+    }
+    
     setTimeout(() => {
       // Step 1에서 비즈니스 타입을 선택하면 totalSteps 재계산
       const currentIsSNS = ['youtube', 'instagram', 'tiktok'].includes(newData.businessType);
@@ -48,6 +87,13 @@ export default function ValuationPage() {
       if (currentStep < steps) {
         setCurrentStep(currentStep + 1);
       } else {
+        // Track valuation completion
+        trackEvent(EventName.COMPLETE_VALUATION, {
+          businessType: newData.businessType,
+          monthlyRevenue: newData.monthlyRevenue,
+          monthlyProfit: newData.monthlyProfit
+        });
+        
         // 결과 페이지로 이동
         localStorage.setItem('valuation_data', JSON.stringify(newData));
         router.push('/valuation/result');
