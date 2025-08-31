@@ -39,7 +39,7 @@ export default function ValuationPage() {
     saveUTMParams();
     trackPageView('/valuation', 'Valuation');
     trackSupabasePageView('/valuation');
-    trackEvent(EventName.VALUATION_START, {
+    trackEvent(EventName.VIEW_VALUATION, {
       timestamp: new Date().toISOString()
     });
   }, []);
