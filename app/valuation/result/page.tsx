@@ -1028,45 +1028,44 @@ export default function ResultPage() {
       )}
       
       {/* The Founder Inc. 브랜드 푸터 */}
-      <footer className="mt-20 border-t border-gray-200 pt-12 pb-8">
+      <footer className="mt-16 border-t border-gray-200 pt-8 pb-6">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
-            {/* 브랜드 로고/이름 */}
-            <div className="mb-6">
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">
+            {/* 브랜드 로고/이름 - 크기 축소 */}
+            <div className="mb-3">
+              <h3 className="text-lg md:text-xl font-bold text-gray-900">
                 The Founder Inc.
               </h3>
-              <p className="text-sm text-gray-600">
-                더 파운더 • 창업자를 위한 데이터 플랫폼
+              <p className="text-xs text-gray-600 mt-1">
+                더 파운더
               </p>
             </div>
             
-            {/* 브랜드 설명 */}
-            <p className="text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
-              실제 <span className="font-bold text-purple-600">5,815건</span>의 비즈니스 거래 데이터를 기반으로
-              <br />
+            {/* 브랜드 설명 - 크기 축소 */}
+            <p className="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto mb-4">
+              실제 <span className="font-bold text-purple-600">5,815건</span>의 비즈니스 거래 데이터를 기반으로<br className="md:hidden" />
               창업자와 크리에이터의 성공을 돕는 데이터 기반 가치 평가 서비스
             </p>
             
-            {/* 신뢰 지표 */}
-            <div className="flex justify-center gap-8 mb-10">
-              <div className="text-center px-4">
-                <div className="text-3xl font-bold text-purple-600 mb-1">5,815+</div>
-                <div className="text-sm text-gray-600">검증된 거래</div>
+            {/* 신뢰 지표 - 모바일 최적화 */}
+            <div className="flex justify-center gap-4 md:gap-8 mb-6">
+              <div className="text-center">
+                <div className="text-xl md:text-2xl font-bold text-purple-600 mb-1">5,815+</div>
+                <div className="text-xs md:text-sm text-gray-600">검증된 거래</div>
               </div>
-              <div className="text-center px-4 border-x border-gray-200">
-                <div className="text-3xl font-bold text-purple-600 mb-1">92.7%</div>
-                <div className="text-sm text-gray-600">정확도</div>
+              <div className="text-center border-x border-gray-200 px-3">
+                <div className="text-xl md:text-2xl font-bold text-purple-600 mb-1">92.7%</div>
+                <div className="text-xs md:text-sm text-gray-600">정확도</div>
               </div>
-              <div className="text-center px-4">
-                <div className="text-3xl font-bold text-purple-600 mb-1">30초</div>
-                <div className="text-sm text-gray-600">평균 측정시간</div>
+              <div className="text-center">
+                <div className="text-xl md:text-2xl font-bold text-purple-600 mb-1">30초</div>
+                <div className="text-xs md:text-sm text-gray-600 whitespace-nowrap">측정시간</div>
               </div>
             </div>
             
-            {/* 추가 서비스 안내 */}
-            <div className="bg-purple-50 rounded-2xl p-6 mb-8 max-w-3xl mx-auto">
-              <p className="text-sm text-purple-900 font-medium mb-2">
+            {/* 추가 서비스 안내 - 크기 축소 */}
+            <div className="bg-purple-50 rounded-2xl p-4 mb-4 max-w-3xl mx-auto">
+              <p className="text-xs md:text-sm text-purple-900 font-medium mb-1">
                 💎 프리미엄 서비스 Coming Soon
               </p>
               <p className="text-xs text-purple-700">
@@ -1074,20 +1073,17 @@ export default function ResultPage() {
               </p>
             </div>
             
-            {/* 회사 정보 */}
-            <div className="text-sm text-gray-500">
-              <p className="mb-3">
+            {/* 회사 정보 - 더 작게 */}
+            <div className="text-xs text-gray-500 mt-6">
+              <p className="mb-1">
                 © 2024 The Founder Inc. All rights reserved.
               </p>
-              <div className="flex justify-center gap-4 text-xs">
-                <Link href="/privacy" className="hover:text-purple-600 transition-colors">
-                  개인정보처리방침
-                </Link>
-                <span className="text-gray-300">•</span>
-                <a href="mailto:contact@thefounder.kr" className="hover:text-purple-600 transition-colors">
-                  contact@thefounder.kr
-                </a>
-              </div>
+              <Link 
+                href="/privacy"
+                className="text-gray-500 hover:text-purple-600 transition-colors text-xs"
+              >
+                개인정보처리방침
+              </Link>
             </div>
           </div>
         </div>
