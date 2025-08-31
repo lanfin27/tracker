@@ -7,7 +7,7 @@ import { getBusinessMultiples } from '@/lib/business-multiples';
 export default function Home() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [totalTransactions, setTotalTransactions] = useState(5795); // 실제 거래 데이터 수
+  const [totalTransactions, setTotalTransactions] = useState(5815); // 실제 거래 데이터 수
   const [notification, setNotification] = useState('');
   const [recentMeasurements, setRecentMeasurements] = useState<Array<{
     type: string;
@@ -27,7 +27,7 @@ export default function Home() {
     { main: "당신은 상위 5%일까요,", sub: "하위 95%", end: "일까요?" },
     { main: "내 채널", sub: "진짜 얼마", end: " 짜린지 아세요?" },
     { main: "남들은 자기 채널 값 아는데…", sub: "당신만", end: " 몰라요?" },
-    { main: "딸깍!", sub: "2분이면 내 사업 가격", end: " 뚝딱 공개" }
+    { main: "딸깍!", sub: "30초면 내 사업 가격", end: " 뚝딱 공개" }
   ];
   
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
@@ -313,11 +313,11 @@ export default function Home() {
               <div className="text-xs text-gray-500 mt-1">검증된 거래</div>
             </div>
             <div className="bg-white rounded-2xl p-4 text-center border border-gray-100">
-              <div className="text-2xl font-bold text-gray-900">87.3%</div>
+              <div className="text-2xl font-bold text-gray-900">92.7%</div>
               <div className="text-xs text-gray-500 mt-1">정확도</div>
             </div>
             <div className="bg-white rounded-2xl p-4 text-center border border-gray-100">
-              <div className="text-2xl font-bold text-gray-900">2분</div>
+              <div className="text-2xl font-bold text-gray-900">30초</div>
               <div className="text-xs text-gray-500 mt-1">측정 시간</div>
             </div>
           </div>

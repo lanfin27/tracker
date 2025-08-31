@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { calculateBusinessValue } from '@/lib/valuation-multiples';
 import { calculateSNSValue } from '@/lib/sns-valuation-multiples';
 import { calculateRealBusinessValue } from '@/lib/real-valuation-service';
@@ -193,6 +194,19 @@ export default function ResultPage() {
   };
   
   // 정밀한 금액 포맷팅 함수
+  // 비즈니스 타입별 구독자/팔로워 라벨
+  const getFollowerLabel = (businessType: string) => {
+    switch (businessType) {
+      case 'youtube':
+        return '구독자 수';
+      case 'instagram':
+      case 'tiktok':
+        return '팔로워 수';
+      default:
+        return '구독자 수';
+    }
+  };
+
   const formatValue = (value: number): string => {
     if (value >= 100000000) {
       // 1억원 이상 - 소수점 둘째 자리까지
@@ -350,7 +364,7 @@ export default function ResultPage() {
               </div>
             )}
             <p className="text-xs text-gray-500">
-              * 매출, 수익{businessData && ['youtube', 'instagram', 'tiktok'].includes(businessData.businessType) ? ', 구독자 수' : ''} 종합 평가
+              * 매출, 수익{businessData && ['youtube', 'instagram', 'tiktok'].includes(businessData.businessType) ? `, ${getFollowerLabel(businessData.businessType)}` : ''} 종합 평가
             </p>
             {dataCount > 0 && (
               <div className="mt-3 flex flex-col items-center gap-2">
@@ -473,18 +487,22 @@ export default function ResultPage() {
           </div>
         )}
         
-        {/* 주변 경쟁자 비교 */}
+        {/* 주변 경쟁자 비교 - 블러 처리 추가 */}
         {stage >= 2 && competitors.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 mb-3 animate-slideUp">
+          <div className="bg-white rounded-2xl p-4 mb-3 animate-slideUp relative">
             <p className="text-sm font-medium text-gray-900 mb-3">주변 경쟁자</p>
-            <div className="space-y-2">
+            <div className="space-y-2 filter blur-[2px]">
               {competitors.map((comp, idx) => (
                 <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold ${
-                      comp.isAbove ? 'bg-red-50 text-red-600' : 'bg-purple-50 text-purple-600'
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                      idx === 0 ? 'bg-purple-100' : 
+                      idx === 1 ? 'bg-pink-100' : 
+                      'bg-blue-100'
                     }`}>
-                      {comp.rank}
+                      <span>
+                        {idx === 0 ? '🎯' : idx === 1 ? '📊' : '🏆'}
+                      </span>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">
@@ -501,6 +519,15 @@ export default function ResultPage() {
                   </div>
                 </div>
               ))}
+            </div>
+            {/* 오버레이 - 클릭 유도 */}
+            <div 
+              className="absolute inset-0 flex items-center justify-center cursor-pointer bg-white/20 rounded-2xl"
+              onClick={() => setShowEmailModal(true)}
+            >
+              <div className="bg-purple-600 text-white px-4 py-2 rounded-xl font-medium shadow-lg hover:bg-purple-700 transition-colors text-sm">
+                🔓 전체 분석 보기
+              </div>
             </div>
           </div>
         )}
@@ -536,28 +563,39 @@ export default function ResultPage() {
                   </div>
                 </div>
                 
-                {/* 업종 내 포지션 차트 */}
-                <div className="border border-gray-100 rounded-xl p-3">
+                {/* 업종 내 포지션 차트 - 블러 처리 추가 */}
+                <div className="border border-gray-100 rounded-xl p-3 relative">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-900">📊 업종 분포도</span>
                     <span className="text-xs text-gray-500">내 위치 분석</span>
                   </div>
                   <div className="h-16 relative">
-                    <div className="absolute bottom-0 w-full h-full flex items-end justify-between gap-0.5">
+                    {/* 블러 처리된 배경 막대들 */}
+                    <div className="absolute bottom-0 w-full h-full flex items-end justify-between gap-0.5 filter blur-[1px]">
+                      {[20, 30, 40, 50, 65, 80, 90, 80, 65, 50, 40, 30, 20, 15].map((height, idx) => (
+                        <div 
+                          key={idx}
+                          className="flex-1 rounded-t bg-gray-200"
+                          style={{ height: `${height}%` }}
+                        />
+                      ))}
+                    </div>
+                    {/* 내 위치 - 선명하게 오버레이 */}
+                    <div className="absolute bottom-0 w-full h-full flex items-end justify-between gap-0.5 pointer-events-none">
                       {[20, 30, 40, 50, 65, 80, 90, 80, 65, 50, 40, 30, 20, 15].map((height, idx) => (
                         <div 
                           key={idx}
                           className={`flex-1 rounded-t ${
                             idx === Math.floor(14 * (Number(ranking?.percentile) || 50) / 100)
-                              ? 'bg-purple-600' 
-                              : 'bg-gray-200'
+                              ? 'bg-purple-600 shadow-lg' 
+                              : 'transparent'
                           }`}
                           style={{ height: `${height}%` }}
                         />
                       ))}
                     </div>
                     <div 
-                      className="absolute top-0 h-full w-0.5 bg-purple-600"
+                      className="absolute top-0 h-full w-0.5 bg-purple-600 shadow-lg"
                       style={{ left: `${ranking?.percentile || 50}%` }}
                     >
                       <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-bold text-purple-600 whitespace-nowrap">
@@ -868,6 +906,72 @@ export default function ResultPage() {
           </div>
         </div>
       )}
+      
+      {/* The Founder Inc. 브랜드 푸터 */}
+      <footer className="mt-20 border-t border-gray-200 pt-12 pb-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center">
+            {/* 브랜드 로고/이름 */}
+            <div className="mb-6">
+              <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                The Founder Inc.
+              </h3>
+              <p className="text-sm text-gray-600">
+                더 파운더 • 창업자를 위한 데이터 플랫폼
+              </p>
+            </div>
+            
+            {/* 브랜드 설명 */}
+            <p className="text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
+              실제 <span className="font-bold text-purple-600">5,815건</span>의 비즈니스 거래 데이터를 기반으로
+              <br />
+              창업자와 크리에이터의 성공을 돕는 데이터 기반 가치 평가 서비스
+            </p>
+            
+            {/* 신뢰 지표 */}
+            <div className="flex justify-center gap-8 mb-10">
+              <div className="text-center px-4">
+                <div className="text-3xl font-bold text-purple-600 mb-1">5,815+</div>
+                <div className="text-sm text-gray-600">검증된 거래</div>
+              </div>
+              <div className="text-center px-4 border-x border-gray-200">
+                <div className="text-3xl font-bold text-purple-600 mb-1">92.7%</div>
+                <div className="text-sm text-gray-600">정확도</div>
+              </div>
+              <div className="text-center px-4">
+                <div className="text-3xl font-bold text-purple-600 mb-1">30초</div>
+                <div className="text-sm text-gray-600">평균 측정시간</div>
+              </div>
+            </div>
+            
+            {/* 추가 서비스 안내 */}
+            <div className="bg-purple-50 rounded-2xl p-6 mb-8 max-w-3xl mx-auto">
+              <p className="text-sm text-purple-900 font-medium mb-2">
+                💎 프리미엄 서비스 Coming Soon
+              </p>
+              <p className="text-xs text-purple-700">
+                AI 기반 성장 전략 • 실시간 시장 분석 • 1:1 컨설팅 • M&A 매칭 서비스
+              </p>
+            </div>
+            
+            {/* 회사 정보 */}
+            <div className="text-sm text-gray-500">
+              <p className="mb-3">
+                © 2024 The Founder Inc. All rights reserved.
+              </p>
+              <div className="flex justify-center gap-4 text-xs">
+                <Link href="/privacy" className="hover:text-purple-600 transition-colors">
+                  개인정보처리방침
+                </Link>
+                <span className="text-gray-300">•</span>
+                <a href="mailto:contact@thefounder.kr" className="hover:text-purple-600 transition-colors">
+                  contact@thefounder.kr
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
