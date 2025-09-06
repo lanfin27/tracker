@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
-import { saveEmailLead, saveWeeklySubscription } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    console.log('📥 Submit-email received:', body);
+    
     const { 
       email, 
-      type = 'detailed_analysis', // 'detailed_analysis' or 'weekly_report'
+      type = 'detailed_analysis',
       businessData 
     } = body;
 
@@ -18,41 +20,60 @@ export async function POST(request: Request) {
       );
     }
 
-    // 타입에 따라 다른 처리
-    if (type === 'weekly_report') {
-      // 주간 리포트 구독
-      await saveWeeklySubscription({
-        email,
-        business_type: businessData?.businessType
-      });
-    } else {
-      // 상세 분석 이메일 수집
-      await saveEmailLead({
-        email,
-        business_type: businessData?.businessType,
-        monthly_revenue: businessData?.monthlyRevenue,
-        monthly_profit: businessData?.monthlyProfit,
-        subscribers: businessData?.subscribers,
-        business_age: businessData?.businessAge,
-        calculated_value: businessData?.calculatedValue,
-        percentile: businessData?.percentile,
-        page_source: 'detailed_analysis'
-      });
+    // track-view와 동일한 방식으로 데이터 준비
+    const dataToInsert = {
+      email: email,
+      business_type: businessData?.businessType || null,
+      monthly_revenue: businessData?.monthlyRevenue || null,
+      monthly_profit: businessData?.monthlyProfit || null,
+      business_age: businessData?.businessAge || null,
+      subscribers: businessData?.subscribers || null,
+      // 핵심 필드들 - track-view와 동일하게 처리
+      avg_views: businessData?.avgViews || 0,
+      avg_likes: businessData?.avgLikes || 0,
+      category: businessData?.category || null,
+      calculated_value: businessData?.calculatedValue || null,
+      percentile: businessData?.percentile || null,
+      page_source: type === 'weekly_report' ? 'weekly_report' : 'detailed_analysis',
+      utm_source: businessData?.utmSource || null,
+      utm_medium: businessData?.utmMedium || null,
+      utm_campaign: businessData?.utmCampaign || null,
+      created_at: new Date().toISOString()
+    };
+    
+    console.log('💾 Inserting to Supabase:', dataToInsert);
+    
+    const { data, error } = await supabase
+      .from('leads')
+      .insert([dataToInsert])
+      .select();
+    
+    if (error) {
+      console.error('❌ Supabase error:', error);
+      return NextResponse.json(
+        { 
+          error: '처리 중 오류가 발생했습니다.',
+          details: error.message 
+        },
+        { status: 500 }
+      );
     }
-
+    
+    console.log('✅ Successfully saved:', data);
+    
     return NextResponse.json({ 
       success: true,
       message: type === 'weekly_report' 
         ? '주간 리포트 구독이 완료되었습니다!' 
-        : '상세 분석이 이메일로 전송됩니다!'
+        : '상세 분석이 이메일로 전송됩니다!',
+      data
     });
 
   } catch (error) {
-    console.error('Email submission error:', error);
-    
+    console.error('❌ API error:', error);
     return NextResponse.json(
       { 
-        error: '처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        error: '처리 중 오류가 발생했습니다.',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

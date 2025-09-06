@@ -415,6 +415,19 @@ export default function ResultPage() {
       // Track email submission attempt
       trackEvent(EventName.SUBMIT_EMAIL, { source: 'competitor_analysis' });
       
+      // 디버깅용 로그 추가
+      console.log('📤 Email Submit Data:', {
+        email,
+        businessType: businessData?.businessType,
+        revenue: businessData?.monthlyRevenue,
+        profit: businessData?.monthlyProfit,
+        subscribers: businessData?.subscribers,
+        avgViews: businessData?.avgViews,
+        avgLikes: businessData?.avgLikes,
+        category: businessData?.category,
+        value: finalValue
+      });
+      
       // API 호출로 Supabase에 저장
       const response = await fetch('/api/submit-email', {
         method: 'POST',
@@ -430,6 +443,9 @@ export default function ResultPage() {
             monthlyProfit: businessData?.monthlyProfit,
             subscribers: businessData?.subscribers,
             businessAge: businessData?.businessAge,
+            avgViews: businessData?.avgViews || 0,
+            avgLikes: businessData?.avgLikes || 0,
+            category: businessData?.category || '',
             calculatedValue: finalValue,
             percentile: ranking?.percentile,
             requestedFeature: 'competitor_analysis'
@@ -477,6 +493,19 @@ export default function ResultPage() {
     // Track weekly email submission
     trackEvent(EventName.SUBMIT_WEEKLY_EMAIL, { source: 'weekly_report' });
     
+    // 디버깅용 로그 추가
+    console.log('📤 Weekly Report Data:', {
+      email: weeklyEmail,
+      businessType: businessData?.businessType,
+      revenue: businessData?.monthlyRevenue,
+      profit: businessData?.monthlyProfit,
+      subscribers: businessData?.subscribers,
+      avgViews: businessData?.avgViews,
+      avgLikes: businessData?.avgLikes,
+      category: businessData?.category,
+      value: finalValue
+    });
+    
     try {
       // API 호출로 Supabase에 저장
       const response = await fetch('/api/submit-email', {
@@ -488,12 +517,22 @@ export default function ResultPage() {
           email: weeklyEmail,
           type: 'weekly_report',
           businessData: {
-            businessType: businessData?.businessType
+            businessType: businessData?.businessType,
+            monthlyRevenue: businessData?.monthlyRevenue || 0,
+            monthlyProfit: businessData?.monthlyProfit || 0,
+            businessAge: businessData?.businessAge || '',
+            subscribers: businessData?.subscribers || 0,
+            avgViews: businessData?.avgViews || 0,
+            avgLikes: businessData?.avgLikes || 0,
+            category: businessData?.category || '',
+            calculatedValue: finalValue || 0,
+            percentile: ranking?.percentile || 0
           }
         })
       });
       
       const result = await response.json();
+      console.log('✅ Weekly Report Response:', result);
       
       if (response.ok) {
         // Success tracking
