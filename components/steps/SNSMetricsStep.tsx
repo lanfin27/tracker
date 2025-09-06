@@ -145,11 +145,38 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
         <input
           type="number"
           value={businessType === 'instagram' ? avgLikes : avgViews}
-          onChange={(e) => businessType === 'instagram' ? setAvgLikes(e.target.value) : setAvgViews(e.target.value)}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            if (businessType === 'instagram') {
+              setAvgLikes(inputValue);
+            } else {
+              setAvgViews(inputValue);
+            }
+          }}
           placeholder="0"
           className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none"
         />
       </div>
+      
+      {/* YouTube와 TikTok인 경우 좋아요 수도 별도 입력 */}
+      {(businessType === 'youtube' || businessType === 'tiktok') && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            최근 {businessType === 'youtube' ? '영상' : '영상'} 평균 좋아요 수
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            최근 10개 {businessType === 'youtube' ? '영상' : '영상'} 평균
+          </p>
+          
+          <input
+            type="number"
+            value={avgLikes}
+            onChange={(e) => setAvgLikes(e.target.value)}
+            placeholder="0"
+            className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none"
+          />
+        </div>
+      )}
       
       {/* 카테고리 선택 */}
       <div>
@@ -179,12 +206,25 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
       
       {/* 다음 버튼 */}
       <button
-        onClick={() => onNext({
-          subscribers: Number(subscribers),
-          avgViews: Number(avgViews),
-          avgLikes: Number(avgLikes),
-          category
-        })}
+        onClick={() => {
+          // 디버깅 로그 추가
+          console.log('📊 SNS Metrics Input:', {
+            subscribers: subscribers,
+            avgViews: avgViews,
+            avgLikes: avgLikes,
+            parsedSubscribers: parseInt(subscribers) || 0,
+            parsedAvgViews: parseInt(avgViews) || 0,
+            parsedAvgLikes: parseInt(avgLikes) || 0,
+            category
+          });
+          
+          onNext({
+            subscribers: parseInt(subscribers) || 0,
+            avgViews: parseInt(avgViews) || 0,
+            avgLikes: parseInt(avgLikes) || 0,
+            category
+          });
+        }}
         disabled={!subscribers || Number(subscribers) <= 0}
         className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all ${
           subscribers && Number(subscribers) > 0
