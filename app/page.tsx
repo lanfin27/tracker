@@ -392,71 +392,109 @@ export default function Home() {
             </div>
           )}
 
-          {/* Industry average values - 실제 Multiple 데이터 기반 */}
-          <div className="bg-white rounded-3xl p-6 border border-gray-100 animate-slideUp"
+          {/* 결과 미리보기 섹션 */}
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm animate-slideUp"
                style={{ animationDelay: '0.7s' }}>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              업종별 평균 가치 <span className="text-xs font-normal text-gray-500">(실제 데이터 기반)</span>
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg md:text-xl font-bold text-gray-900">
+                  📊 30초 후, 이런 분석을 받아보세요
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  실제 측정 결과 예시
+                </p>
+              </div>
+              <span className="hidden md:block text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
+                샘플 결과
+              </span>
+            </div>
             
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-                    <span className="text-lg">📺</span>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">유튜브</div>
-                    <div className="text-xs text-gray-500">구독자 10만, 월 500만원 기준</div>
+            {/* 결과 미리보기 카드 */}
+            <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 rounded-2xl p-5 border border-purple-100">
+              <div className="grid grid-cols-2 gap-4">
+                {/* 왼쪽: 핵심 가치 */}
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">내 비즈니스 가치</p>
+                  <div className="space-y-1">
+                    <p className="text-3xl font-bold text-purple-600">₩2.87억</p>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">
+                        ↑ 상위 15%
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900">{examples.youtube.value}</div>
-                  <div className="text-xs text-purple-600">x{examples.youtube.multiple} 배수</div>
+                
+                {/* 오른쪽: 미니 차트 */}
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">업종 내 위치</p>
+                  <div className="flex items-end gap-1 h-20">
+                    <div className="flex-1 bg-gray-300 rounded-t transition-all hover:bg-gray-400" style={{height: '30%'}}></div>
+                    <div className="flex-1 bg-gray-300 rounded-t transition-all hover:bg-gray-400" style={{height: '45%'}}></div>
+                    <div className="flex-1 bg-gray-300 rounded-t transition-all hover:bg-gray-400" style={{height: '60%'}}></div>
+                    <div className="flex-1 bg-purple-600 rounded-t animate-pulse shadow-lg" style={{height: '85%'}}>
+                      <div className="w-full h-full bg-purple-400 rounded-t opacity-50"></div>
+                    </div>
+                    <div className="flex-1 bg-gray-300 rounded-t transition-all hover:bg-gray-400" style={{height: '95%'}}></div>
+                    <div className="flex-1 bg-gray-300 rounded-t transition-all hover:bg-gray-400" style={{height: '70%'}}></div>
+                    <div className="flex-1 bg-gray-300 rounded-t transition-all hover:bg-gray-400" style={{height: '40%'}}></div>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-xs text-gray-400">하위</span>
+                    <span className="text-xs text-purple-600 font-medium">나</span>
+                    <span className="text-xs text-gray-400">상위</span>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-                    <span className="text-lg">📷</span>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">인스타그램</div>
-                    <div className="text-xs text-gray-500">팔로워 5만, 월 300만원 기준</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900">{examples.instagram.value}</div>
-                  <div className="text-xs text-green-600">x{examples.instagram.multiple} 배수</div>
-                </div>
-              </div>
+              {/* 구분선 */}
+              <div className="my-4 border-t border-purple-100"></div>
               
-              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-                    <span className="text-lg">💻</span>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">SaaS</div>
-                    <div className="text-xs text-gray-500">MRR 2천만원 기준</div>
-                  </div>
+              {/* 추가 분석 포인트 */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center">
+                  <div className="text-lg mb-1">📈</div>
+                  <p className="text-xs text-gray-700 font-medium">성장률</p>
+                  <p className="text-xs text-gray-500">+23%</p>
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900">{examples.saas.value}</div>
-                  <div className="text-xs text-green-600">x{examples.saas.multiple} 배수</div>
+                <div className="text-center">
+                  <div className="text-lg mb-1">📊</div>
+                  <p className="text-xs text-gray-700 font-medium">적정 EXIT</p>
+                  <p className="text-xs text-gray-500">8-12개월</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg mb-1">💎</div>
+                  <p className="text-xs text-gray-700 font-medium">투자매력도</p>
+                  <p className="text-xs text-gray-500">A등급</p>
                 </div>
               </div>
             </div>
             
-            <button
+            {/* 분석 항목 리스트 */}
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="text-purple-600">✓</span>
+                <span>실제 거래 데이터 5,815건 기반 분석</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="text-purple-600">✓</span>
+                <span>비슷한 규모 경쟁자와 상세 비교</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="text-purple-600">✓</span>
+                <span>투자/매각 시점 및 전략 제안</span>
+              </div>
+            </div>
+            
+            {/* CTA 버튼 */}
+            <button 
               onClick={() => {
-                trackCTAClick(EventName.CLICK_START_VALUATION, 'home_industry_average');
+                trackCTAClick(EventName.CLICK_START_VALUATION, 'home_result_preview');
                 router.push('/valuation');
               }}
-              className="w-full mt-4 py-3 text-purple-600 font-medium rounded-xl hover:bg-purple-50 transition-colors"
+              className="w-full mt-5 py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             >
-              내 비즈니스 가치 확인하기 →
+              내 비즈니스 결과 확인하기 →
             </button>
           </div>
 

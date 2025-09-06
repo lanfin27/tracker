@@ -36,6 +36,9 @@ export default function ResultPage() {
   const [dataCount, setDataCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [usedMethod, setUsedMethod] = useState<'revenue' | 'profit' | 'fallback'>('revenue');
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
     // Analytics 초기화
@@ -341,15 +344,20 @@ export default function ResultPage() {
   };
   
   const handleEmailSubmit = async () => {
-    if (!email || !email.includes('@')) {
-      alert('올바른 이메일을 입력해주세요');
-      return;
-    }
-    
-    // Track email submission attempt
-    trackEvent(EventName.SUBMIT_EMAIL, { source: 'detailed_analysis' });
+    setIsLoading(true);
+    setEmailError('');
     
     try {
+      // 이메일 유효성 검사
+      if (!email || !email.includes('@')) {
+        setEmailError('올바른 이메일을 입력해주세요');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Track email submission attempt
+      trackEvent(EventName.SUBMIT_EMAIL, { source: 'competitor_analysis' });
+      
       // API 호출로 Supabase에 저장
       const response = await fetch('/api/submit-email', {
         method: 'POST',
@@ -366,7 +374,8 @@ export default function ResultPage() {
             subscribers: businessData?.subscribers,
             businessAge: businessData?.businessAge,
             calculatedValue: finalValue,
-            percentile: ranking?.percentile
+            percentile: ranking?.percentile,
+            requestedFeature: 'competitor_analysis'
           }
         })
       });
@@ -375,30 +384,30 @@ export default function ResultPage() {
       
       if (response.ok) {
         // Success tracking
-        trackEmailSubmission(true, 'detailed_analysis', {
+        trackEmailSubmission(true, 'competitor_analysis', {
           businessType: businessData?.businessType,
           value: finalValue
         });
         
-        localStorage.setItem('email_submitted', email);
-        setIsUnlocked(true);
+        // 이메일 저장 성공 - 잠금은 풀지 않음
         setShowEmailModal(false);
-        setStage(4);
+        setShowSuccessMessage(true);
         
-        confetti({
-          particleCount: 200,
-          spread: 100,
-          origin: { y: 0.5 }
-        });
+        // 3초 후 성공 메시지 자동 닫기
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+        }, 3000);
       } else {
-        throw new Error(result.error || 'Submission failed');
+        setEmailError('잠시 후 다시 시도해주세요');
       }
     } catch (error) {
       console.error('Email submission error:', error);
-      trackEmailSubmission(false, 'detailed_analysis', {
+      trackEmailSubmission(false, 'competitor_analysis', {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
-      alert('이메일 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setEmailError('네트워크 오류가 발생했습니다');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -595,49 +604,75 @@ export default function ResultPage() {
           </div>
         )}
         
-        {/* 주변 경쟁자 비교 - 블러 처리 추가 */}
-        {stage >= 2 && competitors.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 mb-3 animate-slideUp relative">
-            <p className="text-sm font-medium text-gray-900 mb-3">주변 경쟁자</p>
-            <div className="space-y-2 filter blur-[2px]">
-              {competitors.map((comp, idx) => (
-                <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+        {/* 주변 경쟁자 비교 - 개선된 블러 처리 */}
+        {stage >= 2 && (
+          <div className="bg-white rounded-3xl p-8 shadow-sm mb-3">
+            <h2 className="text-lg font-medium text-gray-800 mb-6 filter blur-[3px] opacity-70">
+              주변 경쟁자
+            </h2>
+            
+            <div className="relative">
+              {/* 블러 처리된 데이터 - 드래그 방지 추가 */}
+              <div 
+                className="space-y-4 filter blur-[6px] select-none pointer-events-none"
+                style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none' }}
+              >
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
-                      idx === 0 ? 'bg-purple-100' : 
-                      idx === 1 ? 'bg-pink-100' : 
-                      'bg-blue-100'
-                    }`}>
-                      <span>
-                        {idx === 0 ? '🎯' : idx === 1 ? '📊' : '🏆'}
-                      </span>
-                    </div>
+                    <div className="w-10 h-10 bg-purple-200 rounded-full"></div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {comp.position === 'below' ? '바로 아래' : comp.position === 'above' ? '바로 위' : '다음 목표'}
-                      </p>
-                      <p className="text-xs text-gray-500">상위 {comp.percentile}%</p>
+                      <p className="font-medium text-gray-900">채널 이름 A</p>
+                      <p className="text-sm text-gray-500">비슷한 매출</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-gray-900">{formatValue(comp.value)}</p>
-                    <p className={`text-xs ${comp.isAbove ? 'text-red-600' : 'text-purple-600'}`}>
-                      {comp.isAbove ? '+' : '-'}{formatValue(comp.difference)}
-                    </p>
+                    <p className="text-lg font-bold text-purple-600">2.07억원</p>
+                    <p className="text-sm text-green-500">▲ 15%</p>
                   </div>
                 </div>
-              ))}
-            </div>
-            {/* 오버레이 - 클릭 유도 */}
-            <div 
-              className="absolute inset-0 flex items-center justify-center cursor-pointer bg-white/20 rounded-2xl"
-              onClick={() => {
-                trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'competitor_overlay' });
-                setShowEmailModal(true);
-              }}
-            >
-              <div className="bg-purple-600 text-white px-4 py-2 rounded-xl font-medium shadow-lg hover:bg-purple-700 transition-colors text-sm">
-                🔓 전체 분석 보기
+                
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-pink-200 rounded-full"></div>
+                    <div>
+                      <p className="font-medium text-gray-900">채널 이름 B</p>
+                      <p className="text-sm text-gray-500">유사 카테고리</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-purple-600">2.54억원</p>
+                    <p className="text-sm text-green-500">▲ 8%</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-200 rounded-full"></div>
+                    <div>
+                      <p className="font-medium text-gray-900">채널 이름 C</p>
+                      <p className="text-sm text-gray-500">비슷한 구독자</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-purple-600">2.94억원</p>
+                    <p className="text-sm text-red-500">▼ 3%</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 오버레이 - 정중앙 배치 수정 */}
+              <div 
+                className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                onClick={() => {
+                  trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'competitor_overlay' });
+                  setShowEmailModal(true);
+                }}
+              >
+                {/* 버튼을 블러 영역의 정중앙에 배치 */}
+                <div className="bg-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:bg-purple-700 transition-all hover:scale-105"
+                     style={{ marginTop: '0' }}>
+                  🔓 상세 분석 보기
+                </div>
               </div>
             </div>
           </div>
@@ -802,25 +837,13 @@ export default function ResultPage() {
               </div>
             </div>
             
-            {/* 블러 오버레이 - 통합된 하나의 CTA */}
+            {/* 블러 오버레이 - 버튼 제거, 블러만 유지 */}
             {!isUnlocked && (
-              <div className="absolute inset-0 rounded-2xl overflow-hidden">
+              <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 <div className="absolute inset-0">
                   <div className="absolute inset-0 bg-white/40 backdrop-blur-[4px]"></div>
                   <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-white/80 to-transparent backdrop-blur-[6px]"></div>
                   <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-white/80 to-transparent backdrop-blur-[6px]"></div>
-                </div>
-                
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <button
-                    onClick={() => {
-                      trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'detailed_analysis_overlay' });
-                      setShowEmailModal(true);
-                    }}
-                    className="px-8 py-4 bg-purple-600 text-white rounded-2xl font-medium shadow-lg hover:bg-purple-700 hover:shadow-xl transition-all transform hover:scale-105"
-                  >
-                    🔓 상세 분석 전체 보기
-                  </button>
                 </div>
               </div>
             )}
@@ -857,27 +880,6 @@ export default function ResultPage() {
           </div>
         )}
         
-        {/* CTA 버튼들 */}
-        {!isUnlocked && stage >= 3 && (
-          <div className="space-y-2 mb-3">
-            <button
-              onClick={() => {
-                trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'cta_button' });
-                setShowEmailModal(true);
-              }}
-              className="w-full py-4 bg-purple-600 text-white rounded-2xl font-medium hover:bg-purple-700 transition-colors"
-            >
-              무료로 전체 분석 받기
-            </button>
-            
-            <div className="flex flex-wrap gap-2 justify-center">
-              <span className="text-xs text-gray-500">✅ 성장 시나리오</span>
-              <span className="text-xs text-gray-500">✅ 업종 분포도</span>
-              <span className="text-xs text-gray-500">✅ EXIT 전략</span>
-              <span className="text-xs text-gray-500">✅ 라이벌 분석</span>
-            </div>
-          </div>
-        )}
         
         {/* 다시 측정하기 버튼 */}
         <button
@@ -926,28 +928,79 @@ export default function ResultPage() {
               </div>
             </div>
             
+            {/* 에러 메시지 표시 */}
+            {emailError && (
+              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                <p className="text-sm text-red-600">{emailError}</p>
+              </div>
+            )}
+            
             <input
               type="email"
               placeholder="이메일 주소"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none mb-3 text-sm"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError(''); // 입력 시 에러 메시지 제거
+              }}
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none mb-3 text-sm transition-colors ${
+                emailError 
+                  ? 'border-red-300 focus:border-red-500' 
+                  : 'border-gray-200 focus:border-purple-600'
+              }`}
               autoFocus
+              disabled={isLoading}
             />
             
             <button
               onClick={handleEmailSubmit}
-              className="w-full py-3 bg-purple-600 text-white rounded-xl font-medium mb-2 hover:bg-purple-700 transition-colors"
+              disabled={isLoading || !email.trim()}
+              className={`w-full py-3 rounded-xl font-medium mb-2 transition-all ${
+                isLoading || !email.trim()
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
             >
-              무료로 받기
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>전송 중...</span>
+                </div>
+              ) : (
+                '무료로 받기'
+              )}
             </button>
             
             <button
-              onClick={() => setShowEmailModal(false)}
-              className="w-full text-center text-sm text-gray-500"
+              onClick={() => {
+                setShowEmailModal(false);
+                setEmailError('');
+                setEmail('');
+              }}
+              disabled={isLoading}
+              className={`w-full text-center text-sm ${
+                isLoading ? 'text-gray-300' : 'text-gray-500 hover:text-gray-700'
+              }`}
             >
               나중에
             </button>
+          </div>
+        </div>
+      )}
+      
+      {/* 성공 메시지 */}
+      {showSuccessMessage && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-slide-in">
+          <div className="bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-sm">등록되었습니다</p>
+              <p className="text-xs opacity-90">준비되면 알려드릴게요!</p>
+            </div>
           </div>
         </div>
       )}

@@ -191,6 +191,18 @@ body {
   }
 }
 
+/* 성공 메시지 슬라이드인 애니메이션 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 .animate-slideUp {
   animation: slideUp 0.5s ease-out;
 }
@@ -201,6 +213,10 @@ body {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* 토스 스타일 프로그레스 바 */

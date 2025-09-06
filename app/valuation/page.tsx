@@ -173,34 +173,14 @@ export default function ValuationPage() {
 function BusinessTypeStep({ onNext }: { onNext: (data: any) => void }) {
   const [selected, setSelected] = useState('');
   
-  // 실제 Multiple 데이터 (한국 시장 = US의 70%)
-  const getMultipleText = (businessType: string): string => {
-    const multiples: Record<string, { revenue: number; profit: number }> = {
-      youtube: { revenue: 0.95, profit: 1.13 },
-      instagram: { revenue: 1.59, profit: 0.94 },
-      tiktok: { revenue: 0.53, profit: 0.76 },
-      blog: { revenue: 2.38, profit: 0.74 },
-      ecommerce: { revenue: 0.97, profit: 0.90 },
-      saas: { revenue: 0.98, profit: 0.82 },
-      website: { revenue: 1.43, profit: 0.46 }
-    };
-    
-    const m = multiples[businessType];
-    if (!m) return 'x1.0';
-    
-    // 더 높은 값을 표시
-    const higherValue = Math.max(m.revenue, m.profit);
-    return `x${higherValue.toFixed(1)}`;
-  };
-  
   const businessTypes = [
-    { id: 'youtube', name: '유튜브', icon: '📺', desc: '구독자 10만 기준 평균 3억', multiple: getMultipleText('youtube') },
-    { id: 'instagram', name: '인스타그램', icon: '📷', desc: '팔로워 5만 기준 평균 1.5억', multiple: getMultipleText('instagram') },
-    { id: 'tiktok', name: '틱톡', icon: '🎵', desc: '팔로워 10만 기준 평균 2억', multiple: getMultipleText('tiktok') },
-    { id: 'blog', name: '블로그', icon: '✍️', desc: '일 방문 1만 기준 평균 2억', multiple: getMultipleText('blog') },
-    { id: 'ecommerce', name: '이커머스', icon: '🛍️', desc: '월 매출 5천만 기준 평균 5억', multiple: getMultipleText('ecommerce') },
-    { id: 'saas', name: 'SaaS', icon: '💻', desc: 'MRR 2천만 기준 평균 9.6억', multiple: getMultipleText('saas') },
-    { id: 'website', name: '웹사이트', icon: '🌐', desc: '월 매출 1천만 기준 평균 3억', multiple: getMultipleText('website') }
+    { id: 'youtube', name: '유튜브', icon: '📺' },
+    { id: 'instagram', name: '인스타그램', icon: '📷' },
+    { id: 'tiktok', name: '틱톡', icon: '🎵' },
+    { id: 'blog', name: '블로그', icon: '✍️' },
+    { id: 'ecommerce', name: '이커머스', icon: '🛍️' },
+    { id: 'saas', name: 'SaaS', icon: '💻' },
+    { id: 'website', name: '웹사이트', icon: '🌐' }
   ];
 
   return (
@@ -228,13 +208,11 @@ function BusinessTypeStep({ onNext }: { onNext: (data: any) => void }) {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{type.icon}</span>
+                <span className="text-3xl">{type.icon}</span>
                 <div className="text-left">
                   <div className="font-semibold text-gray-900">{type.name}</div>
-                  <div className="text-xs text-gray-500">{type.desc}</div>
                 </div>
               </div>
-              <div className="text-xs font-bold text-purple-600">{type.multiple}</div>
             </div>
           </button>
         ))}
