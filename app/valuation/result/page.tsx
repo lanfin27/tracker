@@ -40,6 +40,61 @@ export default function ResultPage() {
   const [emailError, setEmailError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
+  // 자동 결과 추적 (이메일 없이)
+  useEffect(() => {
+    const trackView = async () => {
+      const tracked = sessionStorage.getItem('result_tracked');
+      if (!tracked && businessData && finalValue > 0) {
+        // 세션당 한 번만 추적
+        const sessionId = sessionStorage.getItem('session_id') || 
+                         `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        if (!sessionStorage.getItem('session_id')) {
+          sessionStorage.setItem('session_id', sessionId);
+        }
+        
+        console.log('🚀 Auto-tracking result view...');
+        console.log('📊 Business data:', businessData);
+        console.log('💰 Final value:', finalValue);
+        
+        try {
+          const trackingData = {
+            businessData: {
+              businessType: businessData?.businessType,
+              monthlyRevenue: businessData?.monthlyRevenue,
+              monthlyProfit: businessData?.monthlyProfit,
+              businessAge: businessData?.businessAge,
+              subscribers: businessData?.subscribers || 0,
+              avgViews: businessData?.avgViews || 0,
+              avgLikes: businessData?.avgLikes || 0,
+              category: businessData?.category || '',
+              calculatedValue: finalValue,
+              percentile: ranking?.percentile || 0
+            },
+            sessionId
+          };
+          
+          console.log('📤 Sending tracking data:', trackingData);
+          
+          const response = await fetch('/api/track-view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(trackingData)
+          });
+          
+          const responseData = await response.json();
+          console.log('✅ Tracking response:', responseData);
+          
+          sessionStorage.setItem('result_tracked', 'true');
+        } catch (error) {
+          console.error('❌ Track view error:', error);
+        }
+      }
+    };
+    
+    trackView();
+  }, [businessData, finalValue, ranking]);
+
   useEffect(() => {
     // Analytics 초기화
     saveUTMParams();
@@ -48,6 +103,8 @@ export default function ResultPage() {
     
     const loadResults = async () => {
       const data = JSON.parse(localStorage.getItem('valuation_data') || '{}');
+      console.log('📊 Loaded data from localStorage:', data);
+      
       if (!data.businessType) {
         router.push('/valuation');
         return;
