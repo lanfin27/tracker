@@ -130,7 +130,8 @@ export default function ResultPage() {
             data.monthlyProfit / 10000,   // 원 → 만원 변환
             data.subscribers,
             data.category,
-            data.businessAge
+            data.businessAge,
+            data.avgViews || 0  // 평균 조회수 추가
           );
         } else {
           console.log('💰 기존 계산 사용 (매출/이익 기반)');

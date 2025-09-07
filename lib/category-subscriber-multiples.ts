@@ -1,8 +1,10 @@
 /**
  * YouTube/Instagram/TikTok 카테고리별 구독자/팔로워 가치 멀티플
  * 기준: 실제 거래 데이터 및 업계 벤치마크 분석
- * 2024년 한국 시장 기준
+ * 2025년 한국 시장 기준
  */
+
+import { getAdjustedFollowerValue } from './platform-conversion-rates';
 
 // YouTube 카테고리별 구독자당 가치 (원)
 export const YOUTUBE_CATEGORY_MULTIPLES = {
@@ -118,125 +120,125 @@ export const YOUTUBE_CATEGORY_MULTIPLES = {
   }
 };
 
-// Instagram 카테고리별 팔로워당 가치 (YouTube의 60% 수준 적용)
+// Instagram 카테고리별 팔로워당 가치 (플랫폼 환산율 적용)
 export const INSTAGRAM_CATEGORY_MULTIPLES = {
   '패션': {
     name: '패션',
-    followerValue: 192, // 320 * 0.6
+    followerValue: getAdjustedFollowerValue('instagram', '패션', 320), // YouTube 뷰티/패션 320원 기준
     premium: 1.4,
     description: '패션, 스타일링, OOTD',
     benchmarks: {
-      high: { followers: 100000, value: 26880000 },
-      medium: { followers: 10000, value: 2688000 },
-      low: { followers: 1000, value: 268800 }
+      high: { followers: 100000, value: 6667000 },  // 환산 적용
+      medium: { followers: 10000, value: 667000 },
+      low: { followers: 1000, value: 66700 }
     }
   },
   '뷰티': {
     name: '뷰티',
-    followerValue: 210, // 350 base
+    followerValue: getAdjustedFollowerValue('instagram', '뷰티', 320), // YouTube 뷰티/패션 320원 기준
     premium: 1.5,
     description: '메이크업, 스킨케어, 뷰티 리뷰',
     benchmarks: {
-      high: { followers: 100000, value: 31500000 },
-      medium: { followers: 10000, value: 3150000 },
-      low: { followers: 1000, value: 315000 }
+      high: { followers: 100000, value: 6933000 },  // 환산 적용
+      medium: { followers: 10000, value: 693300 },
+      low: { followers: 1000, value: 69330 }
     }
   },
   '피트니스': {
     name: '피트니스',
-    followerValue: 180,
+    followerValue: getAdjustedFollowerValue('instagram', '피트니스', 300), // 기본값 300원 기준
     premium: 1.3,
     description: '운동, 다이어트, 건강 관리',
     benchmarks: {
-      high: { followers: 100000, value: 23400000 },
-      medium: { followers: 10000, value: 2340000 },
-      low: { followers: 1000, value: 234000 }
+      high: { followers: 100000, value: 5750000 },  // 환산 적용
+      medium: { followers: 10000, value: 575000 },
+      low: { followers: 1000, value: 57500 }
     }
   },
   '여행': {
     name: '여행',
-    followerValue: 165,
+    followerValue: getAdjustedFollowerValue('instagram', '여행', 300), // 기본값 300원
     premium: 1.2,
     description: '여행, 숙소, 맛집',
     benchmarks: {
-      high: { followers: 100000, value: 19800000 },
-      medium: { followers: 10000, value: 1980000 },
-      low: { followers: 1000, value: 198000 }
+      high: { followers: 100000, value: 5500000 },  // 환산 적용
+      medium: { followers: 10000, value: 550000 },
+      low: { followers: 1000, value: 55000 }
     }
   },
   '음식': {
     name: '음식',
-    followerValue: 150,
+    followerValue: getAdjustedFollowerValue('instagram', '음식', 360), // YouTube 요리/먹방 360원
     premium: 1.1,
     description: '음식, 카페, 맛집',
     benchmarks: {
-      high: { followers: 100000, value: 16500000 },
-      medium: { followers: 10000, value: 1650000 },
-      low: { followers: 1000, value: 165000 }
+      high: { followers: 100000, value: 6600000 },  // 환산 적용
+      medium: { followers: 10000, value: 660000 },
+      low: { followers: 1000, value: 66000 }
     }
   },
   '라이프스타일': {
     name: '라이프스타일',
-    followerValue: 200,
+    followerValue: getAdjustedFollowerValue('instagram', '라이프스타일', 420), // YouTube 일상/브이로그 420원
     premium: 1.0,
     description: '일상, 라이프스타일, 인테리어',
     benchmarks: {
-      high: { followers: 100000, value: 20000000 },
-      medium: { followers: 10000, value: 2000000 },
-      low: { followers: 1000, value: 200000 }
+      high: { followers: 100000, value: 8400000 },  // 환산 적용
+      medium: { followers: 10000, value: 840000 },
+      low: { followers: 1000, value: 84000 }
     }
   },
   '사진': {
     name: '사진',
-    followerValue: 120,
+    followerValue: getAdjustedFollowerValue('instagram', '사진', 250), // 기본값
     premium: 1.1,
     description: '사진, 포토그래피',
     benchmarks: {
-      high: { followers: 100000, value: 13200000 },
-      medium: { followers: 10000, value: 1320000 },
-      low: { followers: 1000, value: 132000 }
+      high: { followers: 100000, value: 3958000 },  // 환산 적용
+      medium: { followers: 10000, value: 395800 },
+      low: { followers: 1000, value: 39580 }
     }
   },
   '예술': {
     name: '예술',
-    followerValue: 130,
+    followerValue: getAdjustedFollowerValue('instagram', '예술', 250), // 기본값
     premium: 1.0,
     description: '예술, 창작, 디자인',
     benchmarks: {
-      high: { followers: 100000, value: 13000000 },
-      medium: { followers: 10000, value: 1300000 },
-      low: { followers: 1000, value: 130000 }
+      high: { followers: 100000, value: 3958000 },  // 환산 적용
+      medium: { followers: 10000, value: 395800 },
+      low: { followers: 1000, value: 39580 }
     }
   },
   '펫': {
     name: '펫',
-    followerValue: 140,
+    followerValue: getAdjustedFollowerValue('instagram', '펫', 300), // 기본값
     premium: 1.2,
     description: '반려동물, 펫 관련',
     benchmarks: {
-      high: { followers: 100000, value: 16800000 },
-      medium: { followers: 10000, value: 1680000 },
-      low: { followers: 1000, value: 168000 }
+      high: { followers: 100000, value: 5000000 },  // 환산 적용
+      medium: { followers: 10000, value: 500000 },
+      low: { followers: 1000, value: 50000 }
     }
   },
   '기타': {
     name: '기타',
-    followerValue: 120,
+    followerValue: getAdjustedFollowerValue('instagram', '기타', 300), // YouTube 기타 300원
     premium: 1.0,
     description: '기타 카테고리',
     benchmarks: {
-      high: { followers: 100000, value: 12000000 },
-      medium: { followers: 10000, value: 1200000 },
-      low: { followers: 1000, value: 120000 }
+      high: { followers: 100000, value: 5000000 },  // 환산 적용
+      medium: { followers: 10000, value: 500000 },
+      low: { followers: 1000, value: 50000 }
     }
   }
 };
 
-// TikTok 카테고리별 팔로워당 가치 (YouTube의 40% 수준 적용)
+// TikTok 카테고리별 팔로워당 가치 (플랫폼 환산율 적용)
 export const TIKTOK_CATEGORY_MULTIPLES = {
   '댄스/음악': {
     name: '댄스/음악',
-    followerValue: 100, // 250 * 0.4
+    followerValue: getAdjustedFollowerValue('tiktok', '댄스/음악', 280), // YouTube 엔터 280원
     premium: 1.2,
     description: '댄스, 음악, 챌린지',
     benchmarks: {
@@ -247,7 +249,7 @@ export const TIKTOK_CATEGORY_MULTIPLES = {
   },
   '코미디': {
     name: '코미디',
-    followerValue: 110,
+    followerValue: getAdjustedFollowerValue('tiktok', '코미디', 280),
     premium: 1.1,
     description: '코미디, 개그, 유머',
     benchmarks: {
@@ -258,7 +260,7 @@ export const TIKTOK_CATEGORY_MULTIPLES = {
   },
   '교육': {
     name: '교육',
-    followerValue: 180, // 450 * 0.4
+    followerValue: getAdjustedFollowerValue('tiktok', '교육', 450), // YouTube 교육 450원
     premium: 1.4,
     description: '교육, 정보, 지식',
     benchmarks: {
@@ -269,7 +271,7 @@ export const TIKTOK_CATEGORY_MULTIPLES = {
   },
   '요리': {
     name: '요리',
-    followerValue: 144, // 360 * 0.4
+    followerValue: getAdjustedFollowerValue('tiktok', '요리', 360), // YouTube 요리 360원
     premium: 1.1,
     description: '요리, 레시피, 먹방',
     benchmarks: {
@@ -280,7 +282,7 @@ export const TIKTOK_CATEGORY_MULTIPLES = {
   },
   '뷰티': {
     name: '뷰티',
-    followerValue: 128, // 320 * 0.4
+    followerValue: getAdjustedFollowerValue('tiktok', '뷰티', 320), // YouTube 뷰티 320원
     premium: 1.3,
     description: '뷰티, 메이크업, 스킨케어',
     benchmarks: {
@@ -291,7 +293,7 @@ export const TIKTOK_CATEGORY_MULTIPLES = {
   },
   '게임': {
     name: '게임',
-    followerValue: 100, // 250 * 0.4
+    followerValue: getAdjustedFollowerValue('tiktok', '게임', 250), // YouTube 게임 250원
     premium: 1.1,
     description: '게임, 게임 플레이',
     benchmarks: {
@@ -302,7 +304,7 @@ export const TIKTOK_CATEGORY_MULTIPLES = {
   },
   '펫': {
     name: '펫',
-    followerValue: 120,
+    followerValue: getAdjustedFollowerValue('tiktok', '펫', 300),
     premium: 1.2,
     description: '반려동물, 펫 관련',
     benchmarks: {
@@ -313,7 +315,7 @@ export const TIKTOK_CATEGORY_MULTIPLES = {
   },
   '일상': {
     name: '일상',
-    followerValue: 168, // 420 * 0.4
+    followerValue: getAdjustedFollowerValue('tiktok', '일상', 420), // YouTube 일상 420원
     premium: 1.0,
     description: '일상, 라이프스타일',
     benchmarks: {
@@ -324,7 +326,7 @@ export const TIKTOK_CATEGORY_MULTIPLES = {
   },
   '기타': {
     name: '기타',
-    followerValue: 120, // 300 * 0.4
+    followerValue: getAdjustedFollowerValue('tiktok', '기타', 300), // YouTube 기타 300원
     premium: 1.0,
     description: '기타 카테고리',
     benchmarks: {
@@ -412,6 +414,29 @@ export function calculateSubscriberValue(
     categoryInfo,
     formula: `${subscribers.toLocaleString()}명 × ${categoryInfo.value}원 × ${ageMultiplier} = ${adjustedValue.toLocaleString()}원`
   };
+}
+
+// 동적으로 팔로워 가치 계산하는 헬퍼 함수
+export function calculateDynamicFollowerValue(
+  platform: 'youtube' | 'instagram' | 'tiktok',
+  category: string,
+  subscribers: number
+): number {
+  // 기본값 가져오기
+  let baseValue = 300; // 기본값
+  
+  if (platform === 'youtube') {
+    const categoryData = YOUTUBE_CATEGORY_MULTIPLES[category as keyof typeof YOUTUBE_CATEGORY_MULTIPLES];
+    baseValue = categoryData?.subscriberValue || 300;
+  } else {
+    // YouTube 기준값에서 환산
+    const youtubeEquivalent = YOUTUBE_CATEGORY_MULTIPLES[category as keyof typeof YOUTUBE_CATEGORY_MULTIPLES] || 
+                             YOUTUBE_CATEGORY_MULTIPLES['기타'];
+    baseValue = youtubeEquivalent?.subscriberValue || 300;
+  }
+  
+  // 플랫폼별 환산 적용
+  return getAdjustedFollowerValue(platform, category, baseValue);
 }
 
 // 플랫폼별 상위 카테고리 추천

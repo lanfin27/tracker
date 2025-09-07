@@ -6,8 +6,10 @@ import { getBusinessMultiples, validateMultiples } from './business-multiples';
 import { 
   getCategorySubscriberValue,
   calculateSubscriberValue,
-  getTopCategoriesByPlatform 
+  getTopCategoriesByPlatform,
+  calculateDynamicFollowerValue 
 } from './category-subscriber-multiples';
+import { getPlatformER, getChannelSize } from './platform-conversion-rates';
 
 /**
  * 단순화된 비즈니스 가치 계산
@@ -459,7 +461,8 @@ export async function calculateHybridValue(
   monthlyProfitManwon: number,
   subscribers?: number,
   category?: string,
-  businessAge?: string
+  businessAge?: string,
+  avgViews?: number  // 새 파라미터 추가
 ): Promise<ValuationResult & { details: any }> {
   
   const calcId = `HYBRID_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
@@ -527,34 +530,69 @@ export async function calculateHybridValue(
       method: revenueBasedResult.usedMethod
     });
     
-    // 2. 구독자 기반 계산
+    // 2. 구독자 기반 계산 (개선된 버전)
     log('\n=== 2/3 구독자 기반 가치 계산 ===');
     let subscriberBasedValue = 0;
+    let effectiveFollowerValue = 0;
     let categoryInfo = null;
     let subscriberCalculation = null;
+    let erAdjustment = 1.0;
     
     if (subscribers && category && subscribers > 0) {
       const ageMultiplier = getSimpleAgeMultiplier(businessType, businessAge || '1-2');
       
-      subscriberCalculation = calculateSubscriberValue(
+      // 동적으로 팔로워당 가치 계산
+      effectiveFollowerValue = calculateDynamicFollowerValue(
         businessType as 'youtube' | 'instagram' | 'tiktok',
-        subscribers,
         category,
-        ageMultiplier
+        subscribers
       );
       
-      subscriberBasedValue = subscriberCalculation.adjustedValue;
+      // 기본 구독자 가치 계산
+      subscriberBasedValue = subscribers * effectiveFollowerValue;
+      
+      // 조회수 기반 보정 (YouTube, TikTok만)
+      if (avgViews && avgViews > 0 && (businessType === 'youtube' || businessType === 'tiktok')) {
+        const expectedER = getPlatformER(businessType, subscribers);
+        const actualER = avgViews / subscribers;
+        
+        // 실제 ER이 기대치와 다르면 보정
+        erAdjustment = Math.min(2.0, Math.max(0.5, actualER / expectedER));
+        subscriberBasedValue = subscriberBasedValue * erAdjustment;
+        
+        log('📊 Engagement Rate 보정:', {
+          expectedER: (expectedER * 100).toFixed(2) + '%',
+          actualER: (actualER * 100).toFixed(2) + '%',
+          erAdjustment: erAdjustment.toFixed(2),
+          avgViews
+        });
+      }
+      
+      // 운영기간 조정
+      subscriberBasedValue = subscriberBasedValue * ageMultiplier;
+      
+      // 계산 정보 저장
+      subscriberCalculation = {
+        baseValue: subscribers * effectiveFollowerValue,
+        adjustedValue: subscriberBasedValue,
+        categoryInfo: getCategorySubscriberValue(businessType as any, category),
+        formula: `${subscribers.toLocaleString()}명 × ${effectiveFollowerValue}원 × ${ageMultiplier} × ER보정 ${erAdjustment.toFixed(2)} = ${Math.round(subscriberBasedValue).toLocaleString()}원`
+      };
+      
       categoryInfo = subscriberCalculation.categoryInfo;
       
       log('👥 구독자 기반 결과:', {
+        platform: businessType,
         subscribers,
         category,
-        categoryValue: categoryInfo?.value || 0,
+        effectiveFollowerValue,
         ageMultiplier,
+        erAdjustment,
         baseValue: subscriberCalculation.baseValue,
-        adjustedValue: subscriberBasedValue,
+        adjustedValue: Math.round(subscriberBasedValue),
         adjustedValueKRW: `${(subscriberBasedValue / 10000).toFixed(0)}만원`,
-        formula: subscriberCalculation.formula
+        platformConversion: businessType !== 'youtube' ? 
+          `YouTube 대비 ${businessType === 'instagram' ? '1/6' : '2/3'} 가치` : null
       });
     } else {
       log('⚠️ 구독자 기반 계산 불가:', {
@@ -627,15 +665,26 @@ export async function calculateHybridValue(
       });
     }
     
-    // 4. 상한선 적용
-    const revenueBasedMax = monthlyRevenueManwon * 100 * 10000;
-    const subscriberBasedMax = subscribers ? subscribers * 1500 : 0; // 구독자당 1,500원 상한
+    // 4. 플랫폼별 상한선 적용
+    const revenueBasedMax = monthlyRevenueManwon * 100 * 10000; // 기본: 월매출 100배
+    
+    // 플랫폼별 차별화된 상한선
+    let subscriberCap = 1500; // YouTube 기본값
+    if (businessType === 'instagram') {
+      subscriberCap = 300; // Instagram은 더 낮은 상한
+    } else if (businessType === 'tiktok') {
+      subscriberCap = 800; // TikTok은 중간
+    }
+    
+    const subscriberBasedMax = subscribers ? subscribers * subscriberCap : 0;
     const maxValue = Math.max(revenueBasedMax, subscriberBasedMax);
     
     if (finalValue > maxValue) {
       log('⚠️ 상한선 적용:', {
+        platform: businessType,
         calculatedValue: Math.round(finalValue),
         maxAllowed: Math.round(maxValue),
+        subscriberCap: `${subscriberCap}원/명`,
         appliedLimit: finalValue > revenueBasedMax ? '매출 기반' : '구독자 기반',
         reduction: Math.round(finalValue - maxValue)
       });
@@ -689,11 +738,15 @@ export async function calculateHybridValue(
         calculationMethod,
         revenueBasedValue: revenueBasedResult.value,
         subscriberBasedValue: Math.round(subscriberBasedValue),
+        effectiveFollowerValue: Math.round(effectiveFollowerValue),
         categoryUsed: category,
         categoryInfo,
         subscriberCalculation,
         weightDescription,
         ageMultiplier: getSimpleAgeMultiplier(businessType, businessAge || '1-2'),
+        erAdjustment,
+        platformConversion: businessType !== 'youtube' ? 
+          `YouTube 대비 ${businessType === 'instagram' ? '1/6' : '2/3'} 가치` : null,
         formula: getFormulaExplanation(calculationMethod, businessType, {
           revenueValue: revenueBasedResult.value,
           subscriberValue: subscriberBasedValue,
