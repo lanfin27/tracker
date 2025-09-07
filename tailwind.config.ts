@@ -8,23 +8,49 @@ const config: Config = {
     './app/**/*.{ts,tsx}',
   ],
   safelist: [
+    // 블러 관련 클래스들
     'blur-sm',
+    'blur-md',
+    'blur-lg',
+    'blur-xl',
     'blur-[3px]',
     'blur-[4px]',
     'blur-[6px]',
+    'filter',
+    // 백드롭 블러
     'backdrop-blur-sm',
     'backdrop-blur-md',
+    'backdrop-blur-lg',
+    'backdrop-blur-[2px]',
     'backdrop-blur-[4px]',
     'backdrop-blur-[6px]',
-    'filter',
+    // 포인터 이벤트
     'pointer-events-none',
+    'pointer-events-auto',
+    // 선택 방지
     'select-none',
+    'select-auto',
+    // 투명도 배경
     'bg-white/30',
     'bg-white/40',
+    'bg-white/50',
     'bg-white/80',
+    // 투명도
     'opacity-70',
+    'opacity-80',
+    'opacity-90',
+    // 그라디언트
     'from-white/80',
-    'to-transparent'
+    'to-transparent',
+    // 위치 관련
+    'absolute',
+    'relative',
+    'inset-0',
+    'z-5',
+    'z-10',
+    'z-20',
+    // 오버플로우
+    'overflow-hidden'
   ],
   theme: {
     container: {
