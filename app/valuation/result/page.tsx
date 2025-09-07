@@ -725,8 +725,23 @@ export default function ResultPage() {
         {/* 통합된 상세분석 섹션 */}
         {stage >= 3 && (
           <div className="relative mb-3">
-            {/* 실제 콘텐츠 */}
-            <div className={`bg-white rounded-2xl p-4 ${!isUnlocked ? 'select-none pointer-events-none' : ''}`}>
+            {/* 블러 오버레이 - isUnlocked가 false일 때만 표시 */}
+            {!isUnlocked && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center">
+                <button 
+                  onClick={() => {
+                    trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'detailed_analysis' });
+                    setShowEmailModal(true);
+                  }}
+                  className="bg-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:bg-purple-700 transition-all hover:scale-105"
+                >
+                  🔓 상세 분석 보기
+                </button>
+              </div>
+            )}
+            
+            {/* 실제 콘텐츠 - isUnlocked가 false일 때 블러 처리 */}
+            <div className={`bg-white rounded-2xl p-4 ${!isUnlocked ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
               <p className="text-lg font-bold text-gray-900 mb-4">📊 상세 분석</p>
               
               {/* 3가지 분석 미리보기 리스트 */}
@@ -753,15 +768,15 @@ export default function ResultPage() {
                   </div>
                 </div>
                 
-                {/* 업종 내 포지션 차트 - 블러 처리 추가 */}
-                <div className="border border-gray-100 rounded-xl p-3 relative">
+                {/* 업종 내 포지션 차트 */}
+                <div className="border border-gray-100 rounded-xl p-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-900">📊 업종 분포도</span>
                     <span className="text-xs text-gray-500">내 위치 분석</span>
                   </div>
                   <div className="h-16 relative">
-                    {/* 블러 처리된 배경 막대들 */}
-                    <div className="absolute bottom-0 w-full h-full flex items-end justify-between gap-0.5 filter blur-[1px]">
+                    {/* 배경 막대들 */}
+                    <div className="absolute bottom-0 w-full h-full flex items-end justify-between gap-0.5">
                       {[20, 30, 40, 50, 65, 80, 90, 80, 65, 50, 40, 30, 20, 15].map((height, idx) => (
                         <div 
                           key={idx}
