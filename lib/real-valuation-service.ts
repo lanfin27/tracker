@@ -338,20 +338,24 @@ function sendLogsToServer(
   summary?: any, 
   error?: string
 ) {
-  // 브라우저 환경에서만 실행
-  if (typeof window !== 'undefined') {
-    fetch('/api/log-calculation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        calcId,
-        logs,
-        summary,
-        error
-      })
-    }).catch(err => {
-      console.error('로그 전송 실패:', err);
-    });
+  // 브라우저 환경에서만 실행 - 더 안전한 체크
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    try {
+      fetch('/api/log-calculation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          calcId,
+          logs,
+          summary,
+          error
+        })
+      }).catch(err => {
+        // 에러 무시 - 로그 전송 실패는 계산에 영향 없음
+      });
+    } catch (e) {
+      // 에러 무시
+    }
   }
 }
 

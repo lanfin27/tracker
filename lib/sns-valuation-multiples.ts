@@ -546,37 +546,41 @@ export const calculateSNSValue = (metrics: SNSMetrics): ValuationResult => {
   log(`🔑 계산 ID: ${calcId}`);
   log('========================================\n');
   
-  // 서버로 로그 전송
-  if (typeof window !== 'undefined') {
-    const summary = {
-      businessType: metrics.businessType,
-      subscribers: metrics.subscribers,
-      avgViews: metrics.avgViews || 0,
-      avgLikes: metrics.avgLikes || 0,
-      category: metrics.category || '없음',
-      monthlyRevenue: metrics.monthlyRevenue,
-      monthlyProfit: metrics.monthlyProfit,
-      businessAge: metrics.businessAge,
-      financialValue,
-      audienceValue,
-      growthValue,
-      conservative,
-      moderate,
-      optimistic,
-      timestamp: new Date().toISOString()
-    };
-    
-    fetch('/api/log-calculation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        calcId,
-        logs,
-        summary
-      })
-    }).catch(err => {
-      console.error('SNS 로그 전송 실패:', err);
-    });
+  // 서버로 로그 전송 - 더 안전한 체크
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    try {
+      const summary = {
+        businessType: metrics.businessType,
+        subscribers: metrics.subscribers,
+        avgViews: metrics.avgViews || 0,
+        avgLikes: metrics.avgLikes || 0,
+        category: metrics.category || '없음',
+        monthlyRevenue: metrics.monthlyRevenue,
+        monthlyProfit: metrics.monthlyProfit,
+        businessAge: metrics.businessAge,
+        financialValue,
+        audienceValue,
+        growthValue,
+        conservative,
+        moderate,
+        optimistic,
+        timestamp: new Date().toISOString()
+      };
+      
+      fetch('/api/log-calculation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          calcId,
+          logs,
+          summary
+        })
+      }).catch(err => {
+        // 에러 무시 - 로그 전송 실패는 계산에 영향 없음
+      });
+    } catch (e) {
+      // 에러 무시
+    }
   }
   
   return {

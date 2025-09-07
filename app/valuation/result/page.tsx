@@ -653,15 +653,24 @@ export default function ResultPage() {
           <div className="space-y-3">
             {/* 주변 경쟁자 섹션 */}
             <div className="bg-white rounded-3xl p-8 shadow-sm">
-              <h2 className={`text-lg font-medium text-gray-800 mb-6 ${!isUnlocked ? 'filter blur-[3px] opacity-70' : ''}`}>
+              <h2 
+                className="text-lg font-medium text-gray-800 mb-6"
+                style={!isUnlocked ? { filter: 'blur(3px)', opacity: 0.7 } : {}}
+              >
                 주변 경쟁자
               </h2>
               
               <div className="relative">
                 {/* 블러 처리된 데이터 - 드래그 방지 추가 */}
                 <div 
-                  className={`space-y-4 ${!isUnlocked ? 'filter blur-[6px] select-none pointer-events-none' : ''}`}
-                  style={{ userSelect: !isUnlocked ? 'none' : 'auto', WebkitUserSelect: !isUnlocked ? 'none' : 'auto', MozUserSelect: !isUnlocked ? 'none' : 'auto' }}
+                  className="space-y-4"
+                  style={!isUnlocked ? { 
+                    filter: 'blur(6px)', 
+                    pointerEvents: 'none',
+                    userSelect: 'none', 
+                    WebkitUserSelect: 'none', 
+                    MozUserSelect: 'none' 
+                  } : {}}
               >
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
@@ -728,7 +737,13 @@ export default function ResultPage() {
         {/* 상세분석 섹션 */}
         {stage >= 3 && (
           <div className="bg-white rounded-2xl p-4 mb-3">
-            <div className={`${!isUnlocked ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
+            <div style={!isUnlocked ? { 
+              filter: 'blur(4px)', 
+              pointerEvents: 'none',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none'
+            } : {}}>
               <p className="text-lg font-bold text-gray-900 mb-4">📊 상세 분석</p>
               
               {/* 3가지 분석 미리보기 리스트 */}
