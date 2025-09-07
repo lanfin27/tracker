@@ -12,7 +12,6 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
   const [subscribers, setSubscribers] = useState('');
   const [avgViews, setAvgViews] = useState('');
   const [category, setCategory] = useState('');
-  const [feedback, setFeedback] = useState('');
   
   // 비즈니스 타입별 설정
   const config = {
@@ -66,22 +65,9 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
   
   const currentConfig = config[businessType];
   
-  // 구독자 수 입력 시 피드백
+  // 구독자 수 입력 시 처리
   const handleSubscriberChange = (value: string) => {
     setSubscribers(value);
-    const numValue = Number(value);
-    
-    if (numValue >= 1000000) {
-      setFeedback('🔥 백만 크리에이터! 최상위 0.1%');
-    } else if (numValue >= 100000) {
-      setFeedback('⭐ 대형 채널! 상위 1%');
-    } else if (numValue >= 10000) {
-      setFeedback('💎 중견 채널! 상위 5%');
-    } else if (numValue >= 1000) {
-      setFeedback('🌱 성장 중! 상위 20%');
-    } else if (numValue > 0) {
-      setFeedback('🚀 시작이 반! 무한한 가능성');
-    }
   };
   
   return (
@@ -95,27 +81,6 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
           정확한 가치 측정의 핵심 지표예요
         </p>
         
-        {/* 벤치마크 표시 */}
-        <div className="mb-6 p-4 bg-purple-50 rounded-2xl">
-          <p className="text-sm font-medium text-purple-900 mb-2">
-            💡 평균 가치 참고
-          </p>
-          <div className="space-y-1">
-            {currentConfig.benchmarks.map((benchmark, idx) => (
-              <div key={idx} className="flex justify-between text-sm text-purple-700">
-                <span>{benchmark.subs.toLocaleString()}명</span>
-                <span className="font-medium">{benchmark.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* 피드백 메시지 */}
-        {feedback && (
-          <div className="mb-4 p-3 bg-green-50 rounded-xl border border-green-200">
-            <p className="text-sm text-green-700 font-medium">{feedback}</p>
-          </div>
-        )}
         
         <div className="relative">
           <input

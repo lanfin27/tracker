@@ -44,14 +44,6 @@ export default function ValuationPage() {
     });
   }, []);
   
-  // 각 단계별 심리적 훅 메시지
-  const stepMessages = {
-    1: "가장 높은 가치를 기록한 비즈니스는 SaaS입니다 💰",
-    2: "같은 업종 평균 매출은 500만원입니다 📊",
-    3: "수익률 30% 이상이면 상위 20%입니다 🎯",
-    4: "3년 이상 운영하면 20% 프리미엄이 적용됩니다 🏆",
-    5: "구독자 10만명은 평균 3억원의 가치를 가집니다 🚀"
-  };
 
   const handleNext = (data: any) => {
     setIsAnimating(true);
@@ -143,12 +135,6 @@ export default function ValuationPage() {
 
       {/* 컨텐츠 영역 */}
       <div className="container mx-auto px-4 py-8 max-w-lg">
-        {/* 심리적 훅 메시지 */}
-        <div className={`mb-8 p-4 bg-purple-50 rounded-2xl border border-purple-100 transition-all duration-300 ${isAnimating ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>
-          <p className="text-sm text-purple-700 text-center font-medium">
-            💡 {stepMessages[currentStep as keyof typeof stepMessages]}
-          </p>
-        </div>
 
         {/* 각 단계 렌더링 */}
         <div className={`transition-all duration-300 ${isAnimating ? 'opacity-0 transform translate-x-4' : 'opacity-100 transform translate-x-0'}`}>
@@ -225,35 +211,9 @@ function BusinessTypeStep({ onNext }: { onNext: (data: any) => void }) {
 // Step 2: 매출 입력 (토스 스타일 + 실시간 피드백)
 function RevenueStep({ onNext, previousData }: { onNext: (data: any) => void; previousData: any }) {
   const [revenue, setRevenue] = useState('');
-  const [feedback, setFeedback] = useState('');
-  
-  const averageRevenue: { [key: string]: number } = {
-    youtube: 500,
-    instagram: 300,
-    tiktok: 400,
-    blog: 200,
-    ecommerce: 3000,
-    saas: 2000,
-    website: 1000
-  };
-  
-  const avg = averageRevenue[previousData.businessType] || 500;
   
   const handleChange = (value: string) => {
     setRevenue(value);
-    const numValue = Number(value);
-    
-    if (numValue > avg * 2) {
-      setFeedback(`🔥 대박! 평균의 ${Math.round(numValue/avg)}배! 상위 5% 확정`);
-    } else if (numValue > avg * 1.5) {
-      setFeedback(`🎯 평균보다 ${Math.round((numValue/avg - 1) * 100)}% 높아요! 상위 10%`);
-    } else if (numValue > avg) {
-      setFeedback(`✨ 평균 이상이에요! 상위 30% 예상`);
-    } else if (numValue > 0) {
-      setFeedback(`💪 성장 가능성이 충분해요!`);
-    } else {
-      setFeedback(`📊 같은 업종 평균: ${avg}만원`);
-    }
   };
 
   return (
@@ -265,12 +225,6 @@ function RevenueStep({ onNext, previousData }: { onNext: (data: any) => void; pr
         최근 3개월 평균으로 알려주세요
       </p>
 
-      {/* 실시간 피드백 */}
-      {feedback && (
-        <div className="mb-4 p-3 bg-green-50 rounded-xl border border-green-200">
-          <p className="text-sm text-green-700 font-medium">{feedback}</p>
-        </div>
-      )}
 
       <div className="relative">
         <input
@@ -330,7 +284,7 @@ function ProfitStep({ onNext, previousData }: { onNext: (data: any) => void; pre
   
   const getRateFeedback = () => {
     if (rate === 0) {
-      return `💡 업계 평균 수익률: ${industryAvgMargin}% (${businessType} 업종, 실제 데이터 기반)`;
+      return '';
     }
     // lib/profit-margins.ts의 평가 함수 사용
     return getProfitRateEvaluation(businessType, rate);

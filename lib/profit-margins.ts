@@ -127,19 +127,8 @@ export function getProfitRateEvaluation(businessType: string, actualMargin: numb
   // 실제 값과 비교
   const diff = actualMargin - typical;
   
-  if (actualMargin >= range.max) {
-    return `💎 최상위 수익률! (업계 최고 ${range.max}% 이상)`;
-  } else if (diff > 20) {
-    return `🏆 매우 우수한 수익률! (평균 ${typical}%보다 ${diff}% 높음)`;
-  } else if (diff > 10) {
-    return `✨ 우수한 수익률! (평균 ${typical}%보다 ${diff}% 높음)`;
-  } else if (diff > -10) {
-    return `👍 평균 수준 수익률 (업계 평균: ${typical}%)`;
-  } else if (actualMargin >= range.min) {
-    return `📊 개선 여지 있음 (업계 평균: ${typical}%)`;
-  } else {
-    return `⚠️ 수익 개선 필요 (업계 최소: ${range.min}%)`;
-  }
+  // 단순화된 반환 - 평가 문구 제거
+  return `현재 수익률: ${actualMargin}%`;
 }
 
 // 데이터 검증용 로그
