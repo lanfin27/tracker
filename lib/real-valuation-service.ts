@@ -16,24 +16,43 @@ export async function calculateRealBusinessValue(
   businessAge?: string
 ): Promise<ValuationResult> {
   
-  console.log('====== 간단한 가치 계산 ======');
-  console.log('입력값:', {
-    businessType,
-    월매출: `${monthlyRevenueManwon}만원`,
-    월수익: `${monthlyProfitManwon}만원`,
-    운영기간: businessAge || '1-2'
-  });
+  // 고유 계산 ID 생성 (추적용)
+  const calcId = `CALC_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   
-  // 0 체크
-  if (!monthlyRevenueManwon || monthlyRevenueManwon <= 0) {
-    return { value: 0, percentile: 0 } as ValuationResult;
-  }
+  try {
+    console.log('\n========================================');
+    console.log(`[${calcId}] 🚀 가치평가 계산 시작`);
+    console.log(`[${calcId}] ⏰ 시간: ${new Date().toISOString()}`);
+    console.log(`[${calcId}] 📥 입력 데이터:`, {
+      businessType,
+      monthlyRevenue: `${monthlyRevenueManwon}만원`,
+      monthlyProfit: `${monthlyProfitManwon}만원`,
+      subscribers: subscribers || 0,
+      businessAge: businessAge || '1-2'
+    });
+    
+    // 입력 유효성 검사
+    if (!businessType) {
+      console.error(`[${calcId}] ❌ 비즈니스 타입이 없음`);
+      throw new Error('businessType is required');
+    }
+    
+    // 0 체크
+    if (!monthlyRevenueManwon || monthlyRevenueManwon <= 0) {
+      console.log(`[${calcId}] ⚠️ 매출이 0 이하, 계산 중단`);
+      return getZeroValue();
+    }
   
   // Multiple 가져오기
   const multiples = getBusinessMultiples(businessType);
-  console.log('Multiple:', {
-    revenue: multiples.revenue.toFixed(3),
-    profit: multiples.profit.toFixed(3)
+  const useProfit = monthlyProfitManwon > 0;
+  
+  console.log(`[${calcId}] 🔢 멀티플 정보:`, {
+    businessType,
+    revenueMultiple: multiples.revenue.toFixed(3),
+    profitMultiple: multiples.profit.toFixed(3),
+    selectedMethod: useProfit ? 'PROFIT' : 'REVENUE',
+    selectedMultiple: useProfit ? multiples.profit.toFixed(3) : multiples.revenue.toFixed(3)
   });
   
   // 연간 금액 (만원 단위 유지!)
@@ -41,25 +60,46 @@ export async function calculateRealBusinessValue(
   const annualProfitManwon = monthlyProfitManwon * 12;
   
   let baseValueManwon = 0;  // 만원 단위
-  let method = '';
+  let calculationFormula = '';
   
   // 간단한 로직: Profit이 있으면 Profit 기준, 없으면 Revenue 기준
   if (monthlyProfitManwon > 0) {
     // Profit 기준 계산
     baseValueManwon = annualProfitManwon * multiples.profit;
-    method = 'Profit Multiple';
-    console.log(`Profit 기준: ${annualProfitManwon}만원 × ${multiples.profit.toFixed(3)} = ${baseValueManwon.toFixed(0)}만원`);
+    calculationFormula = `연수익(${annualProfitManwon}만원) × 수익배수(${multiples.profit.toFixed(3)})`;
+    
+    console.log(`[${calcId}] 💰 기본 가치 계산 (Profit 기준):`, {
+      formula: calculationFormula,
+      calculation: `${annualProfitManwon} × ${multiples.profit.toFixed(3)} = ${baseValueManwon.toFixed(0)}`,
+      baseValueManwon: Math.round(baseValueManwon),
+      baseValueKRW: `${(baseValueManwon/10000).toFixed(2)}억원`
+    });
   } else {
     // Revenue 기준 계산
     baseValueManwon = annualRevenueManwon * multiples.revenue;
-    method = 'Revenue Multiple';
-    console.log(`Revenue 기준: ${annualRevenueManwon}만원 × ${multiples.revenue.toFixed(3)} = ${baseValueManwon.toFixed(0)}만원`);
+    calculationFormula = `연매출(${annualRevenueManwon}만원) × 매출배수(${multiples.revenue.toFixed(3)})`;
+    
+    console.log(`[${calcId}] 💰 기본 가치 계산 (Revenue 기준):`, {
+      formula: calculationFormula,
+      calculation: `${annualRevenueManwon} × ${multiples.revenue.toFixed(3)} = ${baseValueManwon.toFixed(0)}`,
+      baseValueManwon: Math.round(baseValueManwon),
+      baseValueKRW: `${(baseValueManwon/10000).toFixed(2)}억원`
+    });
   }
   
   // 운영 기간 프리미엄 적용  
   const ageMultiplier = getSimpleAgeMultiplier(businessType, businessAge || '1-2');
+  const beforeAgeAdjustment = baseValueManwon;
   baseValueManwon = baseValueManwon * ageMultiplier;
-  console.log(`운영기간 적용: × ${ageMultiplier} = ${baseValueManwon.toFixed(0)}만원`);
+  
+  console.log(`[${calcId}] 📅 운영기간 조정:`, {
+    businessAge: businessAge || '1-2',
+    ageMultiplier: ageMultiplier,
+    beforeAdjustment: Math.round(beforeAgeAdjustment),
+    afterAdjustment: Math.round(baseValueManwon),
+    adjustmentAmount: Math.round(baseValueManwon - beforeAgeAdjustment),
+    adjustmentPercentage: `${((ageMultiplier - 1) * 100).toFixed(0)}%`
+  });
   
   // 원 단위로 변환 (마지막에만!)
   let finalValueKRW = baseValueManwon * 10000;
@@ -67,31 +107,93 @@ export async function calculateRealBusinessValue(
   // 상한선 체크 (월매출의 100배 이하)
   const maxValueKRW = monthlyRevenueManwon * 100 * 10000;
   if (finalValueKRW > maxValueKRW) {
-    console.log(`⚠️ 상한선 적용: ${(maxValueKRW / 100000000).toFixed(1)}억원`);
+    console.log(`[${calcId}] ⚠️ 상한선 적용:`, {
+      calculatedValue: Math.round(finalValueKRW),
+      calculatedValueKRW: `${(finalValueKRW / 100000000).toFixed(2)}억원`,
+      maxAllowed: Math.round(maxValueKRW),
+      maxAllowedKRW: `${(maxValueKRW / 100000000).toFixed(2)}억원`,
+      reduction: Math.round(finalValueKRW - maxValueKRW),
+      applied: 'MAX_VALUE'
+    });
     finalValueKRW = maxValueKRW;
   }
   
-  console.log(`====== 최종: ${(finalValueKRW / 100000000).toFixed(1)}억원 ======`);
+  const percentile = calculateSimplePercentile(finalValueKRW);
   
-  return {
+  console.log(`[${calcId}] ✅ 계산 완료:`, {
+    finalValue: Math.round(finalValueKRW),
+    finalValueKRW: `${(finalValueKRW / 100000000).toFixed(2)}억원`,
+    finalValueManwon: `${Math.round(finalValueKRW / 10000)}만원`,
+    percentile: percentile,
+    calculationMethod: useProfit ? 'PROFIT_BASED' : 'REVENUE_BASED',
+    calculationId: calcId
+  });
+  console.log(`[${calcId}] ⏱️ 계산 종료: ${new Date().toISOString()}`);
+  console.log('========================================\n');
+  
+  const result: ValuationResult = {
     value: Math.round(finalValueKRW),
-    percentile: calculateSimplePercentile(finalValueKRW)
-  } as ValuationResult;
+    percentile: percentile,
+    ranking: {
+      nationalRank: Math.round(5553 * (100 - percentile) / 100),
+      industryRank: Math.round(1000 * (100 - percentile) / 100),
+      totalUsers: 5553,
+      industryTotal: 1000,
+      percentile: percentile
+    },
+    statistics: null,
+    similarTransactions: [],
+    confidence: 'medium',
+    dataCount: 0,
+    usedMethod: useProfit ? 'profit' : 'revenue'
+  };
+  
+  // 계산 ID 추가 (타입 확장)
+  (result as any).calculationId = calcId;
+  
+  return result;
+  
+  } catch (error) {
+    console.error(`[${calcId}] ❌ 계산 중 오류 발생:`, error);
+    console.error(`[${calcId}] 오류 세부사항:`, {
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
+      inputData: {
+        businessType,
+        monthlyRevenueManwon,
+        monthlyProfitManwon,
+        subscribers,
+        businessAge
+      }
+    });
     
+    // 오류 발생 시 기본값 반환
+    const errorResult = getZeroValue();
+    (errorResult as any).calculationId = calcId;
+    (errorResult as any).error = error instanceof Error ? error.message : 'Unknown error';
+    return errorResult;
+  }
 }
 
 // 간단한 운영기간 배수
 function getSimpleAgeMultiplier(businessType: string, age: string): number {
-  // 기본값
-  const defaultMultipliers: Record<string, number> = {
-    '0-6': 0.9,
-    '6-12': 0.95,
-    '1-2': 1.0,
-    '2-3': 1.1,
-    '3+': 1.2
-  };
-  
-  return defaultMultipliers[age] || 1.0;
+  try {
+    // 기본값
+    const defaultMultipliers: Record<string, number> = {
+      '0-6': 0.9,
+      '6-12': 0.95,
+      '1-2': 1.0,
+      '2-3': 1.1,
+      '3+': 1.2
+    };
+    
+    const result = defaultMultipliers[age] || 1.0;
+    console.log(`  └─ 운영기간 ${age} → 배수 ${result} (${age === '0-6' ? '초기 할인' : age === '3+' ? '검증 프리미엄' : '기본'})`);
+    return result;
+  } catch (error) {
+    console.error(`  ❌ 운영기간 배수 계산 오류:`, error);
+    return 1.0; // 오류 시 기본값
+  }
 }
 
 // 간단한 백분위

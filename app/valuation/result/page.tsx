@@ -39,6 +39,7 @@ export default function ResultPage() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [calculationId, setCalculationId] = useState<string | null>(null);
   
   // 자동 결과 추적 (이메일 없이)
   useEffect(() => {
@@ -135,6 +136,11 @@ export default function ResultPage() {
         setConfidence(result.confidence);
         setUsedMethod(result.usedMethod);
         
+        // 계산 ID 저장 (디버깅용)
+        if ((result as any).calculationId) {
+          setCalculationId((result as any).calculationId);
+        }
+        
         // Track valuation result
         trackValuationResult(
           result.value,
@@ -178,6 +184,10 @@ export default function ResultPage() {
         if (isSNS && data.subscribers) {
           const snsResult = calculateSNSValue(data);
           calculatedValue = snsResult.final.moderate;
+          // SNS 계산 ID 저장
+          if ((snsResult as any).calculationId) {
+            setCalculationId((snsResult as any).calculationId);
+          }
         } else {
           calculatedValue = calculateBusinessValue(
             data.businessType,
@@ -771,6 +781,13 @@ export default function ResultPage() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+        
+        {/* 개발 모드에서 계산 ID 표시 */}
+        {process.env.NODE_ENV === 'development' && calculationId && (
+          <div className="bg-gray-100 rounded-lg p-2 mb-3 text-xs text-gray-600 font-mono">
+            <span className="font-semibold">Calc ID:</span> {calculationId}
           </div>
         )}
         

@@ -163,49 +163,166 @@ export const audienceMultiples = {
 };
 
 // 오디언스 기반 가치 계산
-export const calculateAudienceValue = (metrics: SNSMetrics): number => {
+export const calculateAudienceValue = (metrics: SNSMetrics, calcId?: string): number => {
   const { businessType, subscribers, avgViews, avgLikes, category } = metrics;
   const multiples = audienceMultiples[businessType];
+  const id = calcId || `AUD_${Date.now()}`;
+  
+  console.log(`\n[${id}] 📊 오디언스 가치 계산 시작`);
+  console.log(`[${id}] 입력 데이터:`, {
+    businessType,
+    subscribers,
+    avgViews: avgViews || 0,
+    avgLikes: avgLikes || 0,
+    category: category || '없음'
+  });
   
   // 1. 구독자 구간 찾기
   const tier = multiples.tiers.find(t => 
     subscribers >= t.min && subscribers < t.max
   ) || multiples.tiers[multiples.tiers.length - 1];
   
+  console.log(`[${id}] 📈 구독자 구간:`, {
+    tierRange: `${tier.min} ~ ${tier.max === Infinity ? '∞' : tier.max}`,
+    tierLabel: tier.label,
+    valuePerUnit: (tier as any).valuePerSub || (tier as any).valuePerFollower,
+    unit: businessType === 'youtube' ? '구독자' : '팔로워'
+  });
+  
   // 2. 기본 가치 계산
-  let baseValue = subscribers * (tier as any).valuePerSub || subscribers * (tier as any).valuePerFollower;
+  const perUnitValue = (tier as any).valuePerSub || (tier as any).valuePerFollower;
+  let baseValue = subscribers * perUnitValue;
+  
+  console.log(`[${id}] 💵 기본 가치:`, {
+    formula: `${subscribers} × ${perUnitValue}원`,
+    baseValue: Math.round(baseValue),
+    baseValueKRW: `${(baseValue / 100000000).toFixed(2)}억원`
+  });
   
   // 3. 카테고리 배수 적용
   const categoryMult = (multiples.categoryMultiplier as any)[category || '기타'] || 1.0;
+  const beforeCategory = baseValue;
   baseValue *= categoryMult;
   
+  console.log(`[${id}] 🏷️ 카테고리 조정:`, {
+    category: category || '기타',
+    multiplier: categoryMult,
+    beforeAdjustment: Math.round(beforeCategory),
+    afterAdjustment: Math.round(baseValue),
+    impact: `${((categoryMult - 1) * 100).toFixed(0)}%`
+  });
+  
   // 4. 참여율 보너스 적용
+  let engagementMultiplier = 1.0;
+  let engagementType = 'none';
+  
   if (businessType === 'youtube' && avgViews) {
     const viewRate = avgViews / subscribers;
     const engagementBonus = (multiples as any).engagementBonus;
-    if (viewRate > 0.2) baseValue *= engagementBonus.high;
-    else if (viewRate > 0.1) baseValue *= engagementBonus.medium;
-    else baseValue *= engagementBonus.low;
+    
+    if (viewRate > 0.2) {
+      engagementMultiplier = engagementBonus.high;
+      engagementType = 'high';
+    } else if (viewRate > 0.1) {
+      engagementMultiplier = engagementBonus.medium;
+      engagementType = 'medium';
+    } else {
+      engagementMultiplier = engagementBonus.low;
+      engagementType = 'low';
+    }
+    
+    console.log(`[${id}] 👥 참여율 보너스 (YouTube):`, {
+      avgViews,
+      subscribers,
+      viewRate: `${(viewRate * 100).toFixed(1)}%`,
+      engagementLevel: engagementType,
+      multiplier: engagementMultiplier,
+      impact: `${((engagementMultiplier - 1) * 100).toFixed(0)}%`
+    });
+    
   } else if (businessType === 'instagram' && avgLikes) {
     const likeRate = avgLikes / subscribers;
     const engagementBonus = (multiples as any).engagementBonus;
-    if (likeRate > 0.05) baseValue *= engagementBonus.high;
-    else if (likeRate > 0.02) baseValue *= engagementBonus.medium;
-    else baseValue *= engagementBonus.low;
+    
+    if (likeRate > 0.05) {
+      engagementMultiplier = engagementBonus.high;
+      engagementType = 'high';
+    } else if (likeRate > 0.02) {
+      engagementMultiplier = engagementBonus.medium;
+      engagementType = 'medium';
+    } else {
+      engagementMultiplier = engagementBonus.low;
+      engagementType = 'low';
+    }
+    
+    console.log(`[${id}] ❤️ 참여율 보너스 (Instagram):`, {
+      avgLikes,
+      subscribers,
+      likeRate: `${(likeRate * 100).toFixed(2)}%`,
+      engagementLevel: engagementType,
+      multiplier: engagementMultiplier,
+      impact: `${((engagementMultiplier - 1) * 100).toFixed(0)}%`
+    });
+    
   } else if (businessType === 'tiktok' && avgViews) {
     const viralBonus = (multiples as any).viralBonus;
-    if (avgViews > 1000000) baseValue *= viralBonus.mega;
-    else if (avgViews > 100000) baseValue *= viralBonus.high;
-    else if (avgViews > 10000) baseValue *= viralBonus.medium;
-    else baseValue *= viralBonus.low;
+    
+    if (avgViews > 1000000) {
+      engagementMultiplier = viralBonus.mega;
+      engagementType = 'mega';
+    } else if (avgViews > 100000) {
+      engagementMultiplier = viralBonus.high;
+      engagementType = 'high';
+    } else if (avgViews > 10000) {
+      engagementMultiplier = viralBonus.medium;
+      engagementType = 'medium';
+    } else {
+      engagementMultiplier = viralBonus.low;
+      engagementType = 'low';
+    }
+    
+    console.log(`[${id}] 🚀 바이럴 보너스 (TikTok):`, {
+      avgViews,
+      viralLevel: engagementType,
+      multiplier: engagementMultiplier,
+      impact: `${((engagementMultiplier - 1) * 100).toFixed(0)}%`
+    });
   }
   
-  return Math.round(baseValue);
+  const beforeEngagement = baseValue;
+  baseValue *= engagementMultiplier;
+  
+  if (engagementMultiplier !== 1.0) {
+    console.log(`[${id}] 🎯 참여율 적용 결과:`, {
+      beforeEngagement: Math.round(beforeEngagement),
+      afterEngagement: Math.round(baseValue),
+      totalImpact: `${(((baseValue / (subscribers * perUnitValue)) - 1) * 100).toFixed(0)}%`
+    });
+  }
+  
+  const finalValue = Math.round(baseValue);
+  
+  console.log(`[${id}] ✅ 오디언스 가치 계산 완료:`, {
+    finalValue,
+    finalValueKRW: `${(finalValue / 100000000).toFixed(2)}억원`,
+    calculation: `${subscribers} × ${perUnitValue} × ${categoryMult} × ${engagementMultiplier}`
+  });
+  
+  return finalValue;
 };
 
 // 성장 잠재력 가치 계산
-export const calculateGrowthValue = (metrics: SNSMetrics): number => {
+export const calculateGrowthValue = (metrics: SNSMetrics, calcId?: string): number => {
   const { businessType, subscribers, avgViews, businessAge } = metrics;
+  const id = calcId || `GRW_${Date.now()}`;
+  
+  console.log(`\n[${id}] 🌱 성장 잠재력 계산 시작`);
+  console.log(`[${id}] 입력 데이터:`, {
+    businessType,
+    subscribers,
+    avgViews: avgViews || 0,
+    businessAge: businessAge || 'unknown'
+  });
   
   // 성장 단계별 배수
   const growthStageMultiplier: { [key: string]: number } = {
@@ -216,19 +333,60 @@ export const calculateGrowthValue = (metrics: SNSMetrics): number => {
   };
   
   // 기본 가치 (오디언스 가치의 변형)
-  let growthValue = calculateAudienceValue(metrics);
+  let growthValue = calculateAudienceValue(metrics, `${id}_AUD`);
+  
+  console.log(`[${id}] 📊 오디언스 기반 가치: ${Math.round(growthValue)}`);
   
   // 성장 단계 배수 적용
-  growthValue *= growthStageMultiplier[businessAge] || 1.0;
+  const stageMultiplier = growthStageMultiplier[businessAge] || 1.0;
+  const beforeStage = growthValue;
+  growthValue *= stageMultiplier;
+  
+  console.log(`[${id}] 📈 성장 단계 조정:`, {
+    businessAge,
+    stageMultiplier,
+    beforeAdjustment: Math.round(beforeStage),
+    afterAdjustment: Math.round(growthValue),
+    impact: `${((stageMultiplier - 1) * 100).toFixed(0)}%`
+  });
   
   // 성장률 추가 보정 (조회수 기반)
   if (avgViews && subscribers) {
     const performanceRatio = avgViews / subscribers;
-    if (performanceRatio > 0.5) growthValue *= 1.2;  // 매우 활발
-    else if (performanceRatio > 0.2) growthValue *= 1.1;  // 활발
+    let performanceMultiplier = 1.0;
+    let performanceLevel = 'normal';
+    
+    if (performanceRatio > 0.5) {
+      performanceMultiplier = 1.2;
+      performanceLevel = 'very_active';
+    } else if (performanceRatio > 0.2) {
+      performanceMultiplier = 1.1;
+      performanceLevel = 'active';
+    }
+    
+    const beforePerformance = growthValue;
+    growthValue *= performanceMultiplier;
+    
+    console.log(`[${id}] 🚀 활동성 보정:`, {
+      avgViews,
+      subscribers,
+      performanceRatio: `${(performanceRatio * 100).toFixed(1)}%`,
+      performanceLevel,
+      multiplier: performanceMultiplier,
+      beforeAdjustment: Math.round(beforePerformance),
+      afterAdjustment: Math.round(growthValue),
+      impact: `${((performanceMultiplier - 1) * 100).toFixed(0)}%`
+    });
   }
   
-  return Math.round(growthValue);
+  const finalValue = Math.round(growthValue);
+  
+  console.log(`[${id}] ✅ 성장 잠재력 계산 완료:`, {
+    finalValue,
+    finalValueKRW: `${(finalValue / 100000000).toFixed(2)}억원`
+  });
+  
+  return finalValue;
 };
 
 // 기존 재무 기반 가치 계산 함수
@@ -236,8 +394,19 @@ const calculateFinancialValue = (
   businessType: string,
   monthlyRevenue: number,
   monthlyProfit: number,
-  businessAge: string
+  businessAge: string,
+  calcId?: string
 ): number => {
+  const id = calcId || `FIN_${Date.now()}`;
+  
+  console.log(`\n[${id}] 💰 재무 기반 가치 계산 시작`);
+  console.log(`[${id}] 입력 데이터:`, {
+    businessType,
+    monthlyRevenue,
+    monthlyProfit,
+    businessAge
+  });
+  
   // 기존 로직 사용
   const multiples: { [key: string]: { revenue: number; profit: number } } = {
     youtube: { revenue: 2.5, profit: 8.0 },
@@ -246,15 +415,33 @@ const calculateFinancialValue = (
   };
   
   const multiple = multiples[businessType];
-  if (!multiple) return 0;
+  if (!multiple) {
+    console.log(`[${id}] ⚠️ 비즈니스 타입 ${businessType}에 대한 멀티플 없음`);
+    return 0;
+  }
+  
+  console.log(`[${id}] 📊 멀티플:`, {
+    revenueMultiple: multiple.revenue,
+    profitMultiple: multiple.profit
+  });
   
   const annualRevenue = monthlyRevenue * 12;
   const annualProfit = monthlyProfit * 12;
   
-  let baseValue = Math.max(
-    annualRevenue * multiple.revenue,
-    annualProfit * multiple.profit
-  );
+  const revenueBasedValue = annualRevenue * multiple.revenue;
+  const profitBasedValue = annualProfit * multiple.profit;
+  
+  let baseValue = Math.max(revenueBasedValue, profitBasedValue);
+  const selectedMethod = revenueBasedValue > profitBasedValue ? 'revenue' : 'profit';
+  
+  console.log(`[${id}] 💵 기본 가치 계산:`, {
+    annualRevenue,
+    annualProfit,
+    revenueBasedValue: Math.round(revenueBasedValue),
+    profitBasedValue: Math.round(profitBasedValue),
+    selectedMethod,
+    baseValue: Math.round(baseValue)
+  });
   
   // 사업 기간 조정
   const ageMultiplier: { [key: string]: number } = {
@@ -264,26 +451,89 @@ const calculateFinancialValue = (
     'mature': 1.2
   };
   
-  return Math.round(baseValue * (ageMultiplier[businessAge] || 1.0));
+  const ageMult = ageMultiplier[businessAge] || 1.0;
+  const beforeAge = baseValue;
+  baseValue *= ageMult;
+  
+  console.log(`[${id}] 📅 사업 기간 조정:`, {
+    businessAge,
+    ageMultiplier: ageMult,
+    beforeAdjustment: Math.round(beforeAge),
+    afterAdjustment: Math.round(baseValue),
+    impact: `${((ageMult - 1) * 100).toFixed(0)}%`
+  });
+  
+  const finalValue = Math.round(baseValue);
+  
+  console.log(`[${id}] ✅ 재무 기반 계산 완료:`, {
+    finalValue,
+    finalValueKRW: `${(finalValue / 100000000).toFixed(2)}억원`
+  });
+  
+  return finalValue;
 };
 
 // 종합 SNS 가치 계산
 export const calculateSNSValue = (metrics: SNSMetrics): ValuationResult => {
+  // 고유 계산 ID 생성
+  const calcId = `SNS_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+  
+  console.log('\n========================================');
+  console.log(`[${calcId}] 🎯 SNS 종합 가치평가 시작`);
+  console.log(`[${calcId}] ⏰ 시간: ${new Date().toISOString()}`);
+  console.log(`[${calcId}] 📥 전체 입력 데이터:`, {
+    businessType: metrics.businessType,
+    subscribers: metrics.subscribers,
+    avgViews: metrics.avgViews || 0,
+    avgLikes: metrics.avgLikes || 0,
+    category: metrics.category || '없음',
+    monthlyRevenue: metrics.monthlyRevenue,
+    monthlyProfit: metrics.monthlyProfit,
+    businessAge: metrics.businessAge
+  });
+  
   // 1. 재무 기반 가치 (기존 방식)
+  console.log(`\n[${calcId}] === 1/3 재무 기반 가치 계산 ===`);
   const financialValue = calculateFinancialValue(
     metrics.businessType,
     metrics.monthlyRevenue,
     metrics.monthlyProfit,
-    metrics.businessAge
+    metrics.businessAge,
+    `${calcId}_FIN`
   );
   
   // 2. 오디언스 기반 가치
-  const audienceValue = calculateAudienceValue(metrics);
+  console.log(`\n[${calcId}] === 2/3 오디언스 기반 가치 계산 ===`);
+  const audienceValue = calculateAudienceValue(metrics, `${calcId}_AUD`);
   
   // 3. 성장 잠재력 가치
-  const growthValue = calculateGrowthValue(metrics);
+  console.log(`\n[${calcId}] === 3/3 성장 잠재력 가치 계산 ===`);
+  const growthValue = calculateGrowthValue(metrics, `${calcId}_GRW`);
   
   // 4. 최종 통합 가치
+  const conservative = Math.min(financialValue, audienceValue, growthValue);
+  const moderate = Math.round(financialValue * 0.3 + audienceValue * 0.5 + growthValue * 0.2);
+  const optimistic = Math.max(financialValue, audienceValue, growthValue);
+  
+  console.log(`\n[${calcId}] 📊 종합 결과:`);
+  console.log(`[${calcId}] ├─ 재무 기반: ${formatValue(financialValue)} (가중치 30%)`);  
+  console.log(`[${calcId}] ├─ 오디언스 기반: ${formatValue(audienceValue)} (가중치 50%)`);
+  console.log(`[${calcId}] └─ 성장 잠재력: ${formatValue(growthValue)} (가중치 20%)`);
+  
+  console.log(`\n[${calcId}] 💎 최종 가치 평가:`);
+  console.log(`[${calcId}] ├─ 보수적: ${formatValue(conservative)} (최소값)`);
+  console.log(`[${calcId}] ├─ 중립적: ${formatValue(moderate)} (가중평균)`);
+  console.log(`[${calcId}] └─ 낙관적: ${formatValue(optimistic)} (최대값)`);
+  
+  console.log(`\n[${calcId}] 📈 가치 분포:`);
+  console.log(`[${calcId}] ├─ 범위: ${formatValue(conservative)} ~ ${formatValue(optimistic)}`);
+  console.log(`[${calcId}] └─ 변동폭: ${((optimistic / conservative - 1) * 100).toFixed(0)}%`);
+  
+  console.log(`\n[${calcId}] ✅ SNS 종합 가치평가 완료`);
+  console.log(`[${calcId}] ⏱️ 계산 종료: ${new Date().toISOString()}`);
+  console.log(`[${calcId}] 🔑 계산 ID: ${calcId}`);
+  console.log('========================================\n');
+  
   return {
     financial: {
       value: financialValue,
@@ -301,11 +551,12 @@ export const calculateSNSValue = (metrics: SNSMetrics): ValuationResult => {
       weight: 0.2
     },
     final: {
-      conservative: Math.min(financialValue, audienceValue, growthValue),
-      moderate: Math.round(financialValue * 0.3 + audienceValue * 0.5 + growthValue * 0.2),
-      optimistic: Math.max(financialValue, audienceValue, growthValue)
-    }
-  };
+      conservative,
+      moderate,
+      optimistic
+    },
+    calculationId: calcId
+  } as ValuationResult & { calculationId: string };
 };
 
 // 가치 포맷팅 함수
