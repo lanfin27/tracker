@@ -648,18 +648,20 @@ export default function ResultPage() {
           </div>
         )}
         
-        {/* 주변 경쟁자 비교 - 개선된 블러 처리 */}
+        {/* 주변 경쟁자 + 상세 분석 통합 섹션 */}
         {stage >= 2 && (
-          <div className="bg-white rounded-3xl p-8 shadow-sm mb-3">
-            <h2 className="text-lg font-medium text-gray-800 mb-6 filter blur-[3px] opacity-70">
-              주변 경쟁자
-            </h2>
-            
-            <div className="relative">
-              {/* 블러 처리된 데이터 - 드래그 방지 추가 */}
-              <div 
-                className="space-y-4 filter blur-[6px] select-none pointer-events-none"
-                style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none' }}
+          <div className="space-y-3">
+            {/* 주변 경쟁자 섹션 */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm">
+              <h2 className={`text-lg font-medium text-gray-800 mb-6 ${!isUnlocked ? 'filter blur-[3px] opacity-70' : ''}`}>
+                주변 경쟁자
+              </h2>
+              
+              <div className="relative">
+                {/* 블러 처리된 데이터 - 드래그 방지 추가 */}
+                <div 
+                  className={`space-y-4 ${!isUnlocked ? 'filter blur-[6px] select-none pointer-events-none' : ''}`}
+                  style={{ userSelect: !isUnlocked ? 'none' : 'auto', WebkitUserSelect: !isUnlocked ? 'none' : 'auto', MozUserSelect: !isUnlocked ? 'none' : 'auto' }}
               >
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
@@ -702,46 +704,31 @@ export default function ResultPage() {
                     <p className="text-sm text-red-500">▼ 3%</p>
                   </div>
                 </div>
-              </div>
-              
-              {/* 오버레이 - 정중앙 배치 수정 */}
-              <div 
-                className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                onClick={() => {
-                  trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'competitor_overlay' });
-                  setShowEmailModal(true);
-                }}
-              >
-                {/* 버튼을 블러 영역의 정중앙에 배치 */}
-                <div className="bg-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:bg-purple-700 transition-all hover:scale-105"
-                     style={{ marginTop: '0' }}>
-                  🔓 상세 분석 보기
                 </div>
               </div>
             </div>
-          </div>
-        )}
-        
-        {/* 통합된 상세분석 섹션 */}
-        {stage >= 3 && (
-          <div className="relative mb-3">
-            {/* 블러 오버레이 - isUnlocked가 false일 때만 표시 */}
+            
+            {/* 중앙에 하나의 언락 버튼 */}
             {!isUnlocked && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center">
+              <div className="flex justify-center my-6">
                 <button 
                   onClick={() => {
-                    trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'detailed_analysis' });
+                    trackEvent(EventName.OPEN_EMAIL_MODAL, { source: 'unified_unlock' });
                     setShowEmailModal(true);
                   }}
-                  className="bg-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:bg-purple-700 transition-all hover:scale-105"
+                  className="bg-purple-600 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:bg-purple-700 transition-all hover:scale-105 text-lg"
                 >
                   🔓 상세 분석 보기
                 </button>
               </div>
             )}
-            
-            {/* 실제 콘텐츠 - isUnlocked가 false일 때 블러 처리 */}
-            <div className={`bg-white rounded-2xl p-4 ${!isUnlocked ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
+          </div>
+        )}
+        
+        {/* 상세분석 섹션 */}
+        {stage >= 3 && (
+          <div className="bg-white rounded-2xl p-4 mb-3">
+            <div className={`${!isUnlocked ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
               <p className="text-lg font-bold text-gray-900 mb-4">📊 상세 분석</p>
               
               {/* 3가지 분석 미리보기 리스트 */}
@@ -895,17 +882,6 @@ export default function ResultPage() {
                 </p>
               </div>
             </div>
-            
-            {/* 블러 오버레이 - 버튼 제거, 블러만 유지 */}
-            {!isUnlocked && (
-              <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                <div className="absolute inset-0">
-                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[4px]"></div>
-                  <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-white/80 to-transparent backdrop-blur-[6px]"></div>
-                  <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-white/80 to-transparent backdrop-blur-[6px]"></div>
-                </div>
-              </div>
-            )}
           </div>
         )}
         
