@@ -18,12 +18,24 @@ export async function calculateRealBusinessValue(
   
   // 고유 계산 ID 생성 (추적용)
   const calcId = `CALC_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+  const logs: string[] = [];
+  
+  // 로그 수집 함수
+  const log = (message: string, data?: any) => {
+    const logMessage = `[${calcId}] ${message}`;
+    console.log(logMessage, data || ''); // 브라우저 콘솔
+    if (data) {
+      logs.push(`${logMessage} ${JSON.stringify(data)}`);
+    } else {
+      logs.push(logMessage);
+    }
+  };
   
   try {
-    console.log('\n========================================');
-    console.log(`[${calcId}] 🚀 가치평가 계산 시작`);
-    console.log(`[${calcId}] ⏰ 시간: ${new Date().toISOString()}`);
-    console.log(`[${calcId}] 📥 입력 데이터:`, {
+    log('\n========================================');
+    log('🚀 가치평가 계산 시작');
+    log('⏰ 시간:', new Date().toISOString());
+    log('📥 입력 데이터:', {
       businessType,
       monthlyRevenue: `${monthlyRevenueManwon}만원`,
       monthlyProfit: `${monthlyProfitManwon}만원`,
@@ -33,13 +45,16 @@ export async function calculateRealBusinessValue(
     
     // 입력 유효성 검사
     if (!businessType) {
-      console.error(`[${calcId}] ❌ 비즈니스 타입이 없음`);
+      log('❌ 비즈니스 타입이 없음');
       throw new Error('businessType is required');
     }
     
     // 0 체크
     if (!monthlyRevenueManwon || monthlyRevenueManwon <= 0) {
-      console.log(`[${calcId}] ⚠️ 매출이 0 이하, 계산 중단`);
+      log('⚠️ 매출이 0 이하, 계산 중단');
+      
+      // 서버로 로그 전송
+      sendLogsToServer(calcId, logs, { zeroRevenue: true });
       return getZeroValue();
     }
   
@@ -47,7 +62,7 @@ export async function calculateRealBusinessValue(
   const multiples = getBusinessMultiples(businessType);
   const useProfit = monthlyProfitManwon > 0;
   
-  console.log(`[${calcId}] 🔢 멀티플 정보:`, {
+  log('🔢 멀티플 정보:', {
     businessType,
     revenueMultiple: multiples.revenue.toFixed(3),
     profitMultiple: multiples.profit.toFixed(3),
@@ -68,7 +83,7 @@ export async function calculateRealBusinessValue(
     baseValueManwon = annualProfitManwon * multiples.profit;
     calculationFormula = `연수익(${annualProfitManwon}만원) × 수익배수(${multiples.profit.toFixed(3)})`;
     
-    console.log(`[${calcId}] 💰 기본 가치 계산 (Profit 기준):`, {
+    log('💰 기본 가치 계산 (Profit 기준):', {
       formula: calculationFormula,
       calculation: `${annualProfitManwon} × ${multiples.profit.toFixed(3)} = ${baseValueManwon.toFixed(0)}`,
       baseValueManwon: Math.round(baseValueManwon),
@@ -79,7 +94,7 @@ export async function calculateRealBusinessValue(
     baseValueManwon = annualRevenueManwon * multiples.revenue;
     calculationFormula = `연매출(${annualRevenueManwon}만원) × 매출배수(${multiples.revenue.toFixed(3)})`;
     
-    console.log(`[${calcId}] 💰 기본 가치 계산 (Revenue 기준):`, {
+    log('💰 기본 가치 계산 (Revenue 기준):', {
       formula: calculationFormula,
       calculation: `${annualRevenueManwon} × ${multiples.revenue.toFixed(3)} = ${baseValueManwon.toFixed(0)}`,
       baseValueManwon: Math.round(baseValueManwon),
@@ -92,7 +107,7 @@ export async function calculateRealBusinessValue(
   const beforeAgeAdjustment = baseValueManwon;
   baseValueManwon = baseValueManwon * ageMultiplier;
   
-  console.log(`[${calcId}] 📅 운영기간 조정:`, {
+  log('📅 운영기간 조정:', {
     businessAge: businessAge || '1-2',
     ageMultiplier: ageMultiplier,
     beforeAdjustment: Math.round(beforeAgeAdjustment),
@@ -107,7 +122,7 @@ export async function calculateRealBusinessValue(
   // 상한선 체크 (월매출의 100배 이하)
   const maxValueKRW = monthlyRevenueManwon * 100 * 10000;
   if (finalValueKRW > maxValueKRW) {
-    console.log(`[${calcId}] ⚠️ 상한선 적용:`, {
+    log('⚠️ 상한선 적용:', {
       calculatedValue: Math.round(finalValueKRW),
       calculatedValueKRW: `${(finalValueKRW / 100000000).toFixed(2)}억원`,
       maxAllowed: Math.round(maxValueKRW),
@@ -120,7 +135,7 @@ export async function calculateRealBusinessValue(
   
   const percentile = calculateSimplePercentile(finalValueKRW);
   
-  console.log(`[${calcId}] ✅ 계산 완료:`, {
+  log('✅ 계산 완료:', {
     finalValue: Math.round(finalValueKRW),
     finalValueKRW: `${(finalValueKRW / 100000000).toFixed(2)}억원`,
     finalValueManwon: `${Math.round(finalValueKRW / 10000)}만원`,
@@ -128,8 +143,23 @@ export async function calculateRealBusinessValue(
     calculationMethod: useProfit ? 'PROFIT_BASED' : 'REVENUE_BASED',
     calculationId: calcId
   });
-  console.log(`[${calcId}] ⏱️ 계산 종료: ${new Date().toISOString()}`);
-  console.log('========================================\n');
+  log('⏱️ 계산 종료:', new Date().toISOString());
+  log('========================================\n');
+  
+  // 서버로 로그 전송
+  const summary = {
+    businessType,
+    monthlyRevenueManwon,
+    monthlyProfitManwon,
+    subscribers,
+    businessAge,
+    finalValue: Math.round(finalValueKRW),
+    percentile,
+    usedMethod: useProfit ? 'profit' : 'revenue',
+    timestamp: new Date().toISOString()
+  };
+  
+  sendLogsToServer(calcId, logs, summary);
   
   const result: ValuationResult = {
     value: Math.round(finalValueKRW),
@@ -154,8 +184,8 @@ export async function calculateRealBusinessValue(
   return result;
   
   } catch (error) {
-    console.error(`[${calcId}] ❌ 계산 중 오류 발생:`, error);
-    console.error(`[${calcId}] 오류 세부사항:`, {
+    log('❌ 계산 중 오류 발생:', error instanceof Error ? error.message : String(error));
+    log('오류 세부사항:', {
       errorMessage: error instanceof Error ? error.message : String(error),
       errorStack: error instanceof Error ? error.stack : undefined,
       inputData: {
@@ -166,6 +196,9 @@ export async function calculateRealBusinessValue(
         businessAge
       }
     });
+    
+    // 에러 로그도 서버로 전송
+    sendLogsToServer(calcId, logs, null, error instanceof Error ? error.message : String(error));
     
     // 오류 발생 시 기본값 반환
     const errorResult = getZeroValue();
@@ -295,6 +328,32 @@ function createResult(
   };
 }
 
+
+/**
+ * 서버로 로그 전송 함수
+ */
+function sendLogsToServer(
+  calcId: string, 
+  logs: string[], 
+  summary?: any, 
+  error?: string
+) {
+  // 브라우저 환경에서만 실행
+  if (typeof window !== 'undefined') {
+    fetch('/api/log-calculation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        calcId,
+        logs,
+        summary,
+        error
+      })
+    }).catch(err => {
+      console.error('로그 전송 실패:', err);
+    });
+  }
+}
 
 /**
  * 구독자 배수 (작게)

@@ -477,11 +477,23 @@ const calculateFinancialValue = (
 export const calculateSNSValue = (metrics: SNSMetrics): ValuationResult => {
   // 고유 계산 ID 생성
   const calcId = `SNS_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+  const logs: string[] = [];
   
-  console.log('\n========================================');
-  console.log(`[${calcId}] 🎯 SNS 종합 가치평가 시작`);
-  console.log(`[${calcId}] ⏰ 시간: ${new Date().toISOString()}`);
-  console.log(`[${calcId}] 📥 전체 입력 데이터:`, {
+  // 로그 수집 함수
+  const log = (message: string, data?: any) => {
+    const logMessage = `[${calcId}] ${message}`;
+    console.log(logMessage, data || ''); // 브라우저 콘솔
+    if (data) {
+      logs.push(`${logMessage} ${JSON.stringify(data)}`);
+    } else {
+      logs.push(logMessage);
+    }
+  };
+  
+  log('\n========================================');
+  log('🎯 SNS 종합 가치평가 시작');
+  log('⏰ 시간:', new Date().toISOString());
+  log('📥 전체 입력 데이터:', {
     businessType: metrics.businessType,
     subscribers: metrics.subscribers,
     avgViews: metrics.avgViews || 0,
@@ -493,7 +505,7 @@ export const calculateSNSValue = (metrics: SNSMetrics): ValuationResult => {
   });
   
   // 1. 재무 기반 가치 (기존 방식)
-  console.log(`\n[${calcId}] === 1/3 재무 기반 가치 계산 ===`);
+  log('\n=== 1/3 재무 기반 가치 계산 ===');
   const financialValue = calculateFinancialValue(
     metrics.businessType,
     metrics.monthlyRevenue,
@@ -503,11 +515,11 @@ export const calculateSNSValue = (metrics: SNSMetrics): ValuationResult => {
   );
   
   // 2. 오디언스 기반 가치
-  console.log(`\n[${calcId}] === 2/3 오디언스 기반 가치 계산 ===`);
+  log('\n=== 2/3 오디언스 기반 가치 계산 ===');
   const audienceValue = calculateAudienceValue(metrics, `${calcId}_AUD`);
   
   // 3. 성장 잠재력 가치
-  console.log(`\n[${calcId}] === 3/3 성장 잠재력 가치 계산 ===`);
+  log('\n=== 3/3 성장 잠재력 가치 계산 ===');
   const growthValue = calculateGrowthValue(metrics, `${calcId}_GRW`);
   
   // 4. 최종 통합 가치
@@ -515,24 +527,57 @@ export const calculateSNSValue = (metrics: SNSMetrics): ValuationResult => {
   const moderate = Math.round(financialValue * 0.3 + audienceValue * 0.5 + growthValue * 0.2);
   const optimistic = Math.max(financialValue, audienceValue, growthValue);
   
-  console.log(`\n[${calcId}] 📊 종합 결과:`);
-  console.log(`[${calcId}] ├─ 재무 기반: ${formatValue(financialValue)} (가중치 30%)`);  
-  console.log(`[${calcId}] ├─ 오디언스 기반: ${formatValue(audienceValue)} (가중치 50%)`);
-  console.log(`[${calcId}] └─ 성장 잠재력: ${formatValue(growthValue)} (가중치 20%)`);
+  log(`\n📊 종합 결과:`);
+  log(`├─ 재무 기반: ${formatValue(financialValue)} (가중치 30%)`);
+  log(`├─ 오디언스 기반: ${formatValue(audienceValue)} (가중치 50%)`);
+  log(`└─ 성장 잠재력: ${formatValue(growthValue)} (가중치 20%)`);
   
-  console.log(`\n[${calcId}] 💎 최종 가치 평가:`);
-  console.log(`[${calcId}] ├─ 보수적: ${formatValue(conservative)} (최소값)`);
-  console.log(`[${calcId}] ├─ 중립적: ${formatValue(moderate)} (가중평균)`);
-  console.log(`[${calcId}] └─ 낙관적: ${formatValue(optimistic)} (최대값)`);
+  log(`\n💎 최종 가치 평가:`);
+  log(`├─ 보수적: ${formatValue(conservative)} (최소값)`);
+  log(`├─ 중립적: ${formatValue(moderate)} (가중평균)`);
+  log(`└─ 낙관적: ${formatValue(optimistic)} (최대값)`);
   
-  console.log(`\n[${calcId}] 📈 가치 분포:`);
-  console.log(`[${calcId}] ├─ 범위: ${formatValue(conservative)} ~ ${formatValue(optimistic)}`);
-  console.log(`[${calcId}] └─ 변동폭: ${((optimistic / conservative - 1) * 100).toFixed(0)}%`);
+  log(`\n📈 가치 분포:`);
+  log(`├─ 범위: ${formatValue(conservative)} ~ ${formatValue(optimistic)}`);
+  log(`└─ 변동폭: ${((optimistic / conservative - 1) * 100).toFixed(0)}%`);
   
-  console.log(`\n[${calcId}] ✅ SNS 종합 가치평가 완료`);
-  console.log(`[${calcId}] ⏱️ 계산 종료: ${new Date().toISOString()}`);
-  console.log(`[${calcId}] 🔑 계산 ID: ${calcId}`);
-  console.log('========================================\n');
+  log(`\n✅ SNS 종합 가치평가 완료`);
+  log(`⏱️ 계산 종료: ${new Date().toISOString()}`);
+  log(`🔑 계산 ID: ${calcId}`);
+  log('========================================\n');
+  
+  // 서버로 로그 전송
+  if (typeof window !== 'undefined') {
+    const summary = {
+      businessType: metrics.businessType,
+      subscribers: metrics.subscribers,
+      avgViews: metrics.avgViews || 0,
+      avgLikes: metrics.avgLikes || 0,
+      category: metrics.category || '없음',
+      monthlyRevenue: metrics.monthlyRevenue,
+      monthlyProfit: metrics.monthlyProfit,
+      businessAge: metrics.businessAge,
+      financialValue,
+      audienceValue,
+      growthValue,
+      conservative,
+      moderate,
+      optimistic,
+      timestamp: new Date().toISOString()
+    };
+    
+    fetch('/api/log-calculation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        calcId,
+        logs,
+        summary
+      })
+    }).catch(err => {
+      console.error('SNS 로그 전송 실패:', err);
+    });
+  }
   
   return {
     financial: {
