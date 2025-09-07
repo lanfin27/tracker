@@ -7,6 +7,25 @@ const config: Config = {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
   ],
+  safelist: [
+    'blur-sm',
+    'blur-[3px]',
+    'blur-[4px]',
+    'blur-[6px]',
+    'backdrop-blur-sm',
+    'backdrop-blur-md',
+    'backdrop-blur-[4px]',
+    'backdrop-blur-[6px]',
+    'filter',
+    'pointer-events-none',
+    'select-none',
+    'bg-white/30',
+    'bg-white/40',
+    'bg-white/80',
+    'opacity-70',
+    'from-white/80',
+    'to-transparent'
+  ],
   theme: {
     container: {
       center: true,
