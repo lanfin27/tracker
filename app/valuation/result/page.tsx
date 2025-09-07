@@ -652,10 +652,32 @@ export default function ResultPage() {
         {stage >= 2 && (
           <div className="space-y-3">
             {/* 주변 경쟁자 섹션 */}
-            <div className="bg-white rounded-3xl p-8 shadow-sm">
+            <div className="bg-white rounded-3xl p-8 shadow-sm relative">
+              {/* 블러 오버레이 - isUnlocked가 false일 때만 표시 */}
+              {!isUnlocked && (
+                <div 
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    backdropFilter: 'blur(2px)',
+                    WebkitBackdropFilter: 'blur(2px)',
+                    borderRadius: '1.5rem',
+                    zIndex: 5
+                  }}
+                />
+              )}
+              
               <h2 
                 className="text-lg font-medium text-gray-800 mb-6"
-                style={!isUnlocked ? { filter: 'blur(3px)', opacity: 0.7 } : {}}
+                style={!isUnlocked ? { 
+                  filter: 'blur(3px)',
+                  WebkitFilter: 'blur(3px)',
+                  opacity: 0.7 
+                } : {}}
               >
                 주변 경쟁자
               </h2>
@@ -665,11 +687,13 @@ export default function ResultPage() {
                 <div 
                   className="space-y-4"
                   style={!isUnlocked ? { 
-                    filter: 'blur(6px)', 
+                    filter: 'blur(6px)',
+                    WebkitFilter: 'blur(6px)',
                     pointerEvents: 'none',
                     userSelect: 'none', 
                     WebkitUserSelect: 'none', 
-                    MozUserSelect: 'none' 
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none'
                   } : {}}
               >
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
@@ -736,13 +760,33 @@ export default function ResultPage() {
         
         {/* 상세분석 섹션 */}
         {stage >= 3 && (
-          <div className="bg-white rounded-2xl p-4 mb-3">
+          <div className="bg-white rounded-2xl p-4 mb-3 relative">
+            {/* 블러 오버레이 - isUnlocked가 false일 때만 표시 */}
+            {!isUnlocked && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  backdropFilter: 'blur(2px)',
+                  WebkitBackdropFilter: 'blur(2px)',
+                  borderRadius: '0.5rem',
+                  zIndex: 5
+                }}
+              />
+            )}
+            
             <div style={!isUnlocked ? { 
-              filter: 'blur(4px)', 
+              filter: 'blur(4px)',
+              WebkitFilter: 'blur(4px)',
               pointerEvents: 'none',
               userSelect: 'none',
               WebkitUserSelect: 'none',
-              MozUserSelect: 'none'
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
             } : {}}>
               <p className="text-lg font-bold text-gray-900 mb-4">📊 상세 분석</p>
               
@@ -788,7 +832,10 @@ export default function ResultPage() {
                       ))}
                     </div>
                     {/* 내 위치 - 선명하게 오버레이 */}
-                    <div className="absolute bottom-0 w-full h-full flex items-end justify-between gap-0.5 pointer-events-none">
+                    <div 
+                      className="absolute bottom-0 w-full h-full flex items-end justify-between gap-0.5"
+                      style={{ pointerEvents: 'none' }}
+                    >
                       {[20, 30, 40, 50, 65, 80, 90, 80, 65, 50, 40, 30, 20, 15].map((height, idx) => (
                         <div 
                           key={idx}
