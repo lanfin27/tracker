@@ -8,7 +8,7 @@ const config: Config = {
     './app/**/*.{ts,tsx}',
   ],
   safelist: [
-    // 블러 관련 클래스들
+    // 블러 관련 클래스들 - Tailwind
     'blur-sm',
     'blur-md',
     'blur-lg',
@@ -24,6 +24,17 @@ const config: Config = {
     'backdrop-blur-[2px]',
     'backdrop-blur-[4px]',
     'backdrop-blur-[6px]',
+    // 커스텀 블러 클래스들 - globals.css
+    'blur-light',
+    'blur-medium',
+    'blur-heavy',
+    'content-blur',
+    'overlay-blur',
+    'overlay-blur-medium',
+    'blur-gradient-overlay',
+    'blur-edge-fade',
+    'blur-peek',
+    'blur-hover-reveal',
     // 포인터 이벤트
     'pointer-events-none',
     'pointer-events-auto',

@@ -656,6 +656,7 @@ export default function ResultPage() {
               {/* 블러 오버레이 - isUnlocked가 false일 때만 표시 */}
               {!isUnlocked && (
                 <div 
+                  className="overlay-blur"
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -672,7 +673,7 @@ export default function ResultPage() {
               )}
               
               <h2 
-                className="text-lg font-medium text-gray-800 mb-6"
+                className={`text-lg font-medium text-gray-800 mb-6 ${!isUnlocked ? 'blur-light' : ''}`}
                 style={!isUnlocked ? { 
                   filter: 'blur(3px)',
                   WebkitFilter: 'blur(3px)',
@@ -685,7 +686,7 @@ export default function ResultPage() {
               <div className="relative">
                 {/* 블러 처리된 데이터 - 드래그 방지 추가 */}
                 <div 
-                  className="space-y-4"
+                  className={`space-y-4 ${!isUnlocked ? 'content-blur' : ''}`}
                   style={!isUnlocked ? { 
                     filter: 'blur(6px)',
                     WebkitFilter: 'blur(6px)',
@@ -764,6 +765,7 @@ export default function ResultPage() {
             {/* 블러 오버레이 - isUnlocked가 false일 때만 표시 */}
             {!isUnlocked && (
               <div 
+                className="overlay-blur"
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -779,15 +781,18 @@ export default function ResultPage() {
               />
             )}
             
-            <div style={!isUnlocked ? { 
-              filter: 'blur(4px)',
-              WebkitFilter: 'blur(4px)',
-              pointerEvents: 'none',
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              MozUserSelect: 'none',
-              msUserSelect: 'none'
-            } : {}}>
+            <div 
+              className={!isUnlocked ? 'content-blur' : ''}
+              style={!isUnlocked ? { 
+                filter: 'blur(4px)',
+                WebkitFilter: 'blur(4px)',
+                pointerEvents: 'none',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              } : {}}
+            >
               <p className="text-lg font-bold text-gray-900 mb-4">📊 상세 분석</p>
               
               {/* 3가지 분석 미리보기 리스트 */}

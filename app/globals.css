@@ -241,63 +241,113 @@ body {
   padding: 0 20px;
 }
 
-/* 블러 효과 최적화 */
+/* 블러 효과 최적화 - Vercel 프로덕션 환경 대응 */
+:root {
+  --blur-light: blur(2px);
+  --blur-medium: blur(4px);
+  --blur-heavy: blur(6px);
+  --blur-extra-heavy: blur(8px);
+  --overlay-light: rgba(255, 255, 255, 0.3);
+  --overlay-medium: rgba(255, 255, 255, 0.4);
+  --overlay-heavy: rgba(255, 255, 255, 0.8);
+}
+
+/* 기본 블러 클래스들 - 인라인 스타일 대안 */
 .blur-light {
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  filter: var(--blur-light) !important;
+  -webkit-filter: var(--blur-light) !important;
+  backdrop-filter: var(--blur-light) !important;
+  -webkit-backdrop-filter: var(--blur-light) !important;
 }
 
 .blur-medium {
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  filter: var(--blur-medium) !important;
+  -webkit-filter: var(--blur-medium) !important;
+  backdrop-filter: var(--blur-medium) !important;
+  -webkit-backdrop-filter: var(--blur-medium) !important;
 }
 
 .blur-heavy {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  filter: var(--blur-heavy) !important;
+  -webkit-filter: var(--blur-heavy) !important;
+  backdrop-filter: var(--blur-extra-heavy) !important;
+  -webkit-backdrop-filter: var(--blur-extra-heavy) !important;
+}
+
+/* 컨텐츠 블러 - 직접 적용용 */
+.content-blur {
+  filter: var(--blur-heavy) !important;
+  -webkit-filter: var(--blur-heavy) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* 오버레이 블러 - 배경용 */
+.overlay-blur {
+  backdrop-filter: var(--blur-light) !important;
+  -webkit-backdrop-filter: var(--blur-light) !important;
+  background-color: var(--overlay-light) !important;
+}
+
+.overlay-blur-medium {
+  backdrop-filter: var(--blur-medium) !important;
+  -webkit-backdrop-filter: var(--blur-medium) !important;
+  background-color: var(--overlay-medium) !important;
 }
 
 .blur-gradient-overlay {
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.8) 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0.8) 100%
-  );
+    var(--overlay-heavy) 0%,
+    var(--overlay-medium) 50%,
+    var(--overlay-heavy) 100%
+  ) !important;
+  backdrop-filter: var(--blur-light) !important;
+  -webkit-backdrop-filter: var(--blur-light) !important;
 }
 
 .blur-edge-fade {
   background: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 255, 255, 0.3) 20%,
-    rgba(255, 255, 255, 0.3) 80%,
+    var(--overlay-light) 20%,
+    var(--overlay-light) 80%,
     rgba(255, 255, 255, 0.95) 100%
-  );
+  ) !important;
+  backdrop-filter: var(--blur-light) !important;
+  -webkit-backdrop-filter: var(--blur-light) !important;
 }
 
 /* 호기심 유발 애니메이션 */
 @keyframes peekContent {
   0%, 100% {
-    backdrop-filter: blur(8px);
+    filter: var(--blur-extra-heavy);
+    -webkit-filter: var(--blur-extra-heavy);
   }
   50% {
-    backdrop-filter: blur(4px);
+    filter: var(--blur-medium);
+    -webkit-filter: var(--blur-medium);
   }
 }
 
 .blur-peek {
-  animation: peekContent 3s ease-in-out infinite;
+  animation: peekContent 3s ease-in-out infinite !important;
 }
 
 /* 블러 호버 효과 */
 .blur-hover-reveal {
-  transition: all 0.3s ease-out;
+  transition: all 0.3s ease-out !important;
 }
 
 .blur-hover-reveal:hover {
-  backdrop-filter: blur(2px) !important;
-  background: rgba(255, 255, 255, 0.4) !important;
+  filter: var(--blur-light) !important;
+  -webkit-filter: var(--blur-light) !important;
+  backdrop-filter: var(--blur-light) !important;
+  -webkit-backdrop-filter: var(--blur-light) !important;
+  background: var(--overlay-medium) !important;
 }
 
 /* 파운더 단색 스타일 */
