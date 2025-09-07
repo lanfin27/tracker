@@ -11,7 +11,6 @@ interface SNSMetricsStepProps {
 export default function SNSMetricsStep({ businessType, onNext, previousData }: SNSMetricsStepProps) {
   const [subscribers, setSubscribers] = useState('');
   const [avgViews, setAvgViews] = useState('');
-  const [avgLikes, setAvgLikes] = useState('');
   const [category, setCategory] = useState('');
   const [feedback, setFeedback] = useState('');
   
@@ -23,29 +22,29 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
       viewsLabel: '최근 영상 평균 조회수',
       viewsPlaceholder: '최근 10개 영상 평균',
       categories: [
-        '교육/강의', '금융/경제', '테크/IT', '부동산', 
+        '교육/강의', '금융/경제', '테크/IT', 
         '뷰티/패션', '요리/먹방', '엔터테인먼트', 
         '일상/브이로그', '게임', '키즈', '기타'
       ],
       benchmarks: [
-        { subs: 10000, value: '1,800만원' },
-        { subs: 100000, value: '3억원' },
-        { subs: 1000000, value: '40억원' }
+        { subs: 10000, value: '300만원 ~ 520만원' },
+        { subs: 100000, value: '3천만원 ~ 5.2억원' },
+        { subs: 1000000, value: '3억원 ~ 52억원' }
       ]
     },
     instagram: {
       subscriberLabel: '팔로워 수',
       subscriberPlaceholder: '예: 30000',
-      viewsLabel: '게시물당 평균 좋아요',
+      viewsLabel: '게시물당 평균 조회수',
       viewsPlaceholder: '최근 10개 게시물 평균',
       categories: [
         '패션', '뷰티', '피트니스', '여행', 
         '음식', '라이프스타일', '사진', '예술', '펫', '기타'
       ],
       benchmarks: [
-        { subs: 10000, value: '1,500만원' },
-        { subs: 50000, value: '1.1억원' },
-        { subs: 100000, value: '2.8억원' }
+        { subs: 10000, value: '120만원 ~ 210만원' },
+        { subs: 50000, value: '600만원 ~ 1,050만원' },
+        { subs: 100000, value: '1,200만원 ~ 3,150만원' }
       ]
     },
     tiktok: {
@@ -58,9 +57,9 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
         '뷰티', '게임', '펫', '일상', '기타'
       ],
       benchmarks: [
-        { subs: 10000, value: '600만원' },
-        { subs: 100000, value: '1억원' },
-        { subs: 1000000, value: '20억원' }
+        { subs: 10000, value: '100만원 ~ 180만원' },
+        { subs: 100000, value: '1,000만원 ~ 2,520만원' },
+        { subs: 1000000, value: '1억원 ~ 25억원' }
       ]
     }
   };
@@ -133,50 +132,26 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
         </div>
       </div>
       
-      {/* 조회수/좋아요 입력 */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {currentConfig.viewsLabel}
-        </h3>
-        <p className="text-sm text-gray-600 mb-4">
-          {currentConfig.viewsPlaceholder}
-        </p>
-        
-        <input
-          type="number"
-          value={businessType === 'instagram' ? avgLikes : avgViews}
-          onChange={(e) => {
-            const inputValue = e.target.value;
-            if (businessType === 'instagram') {
-              setAvgLikes(inputValue);
-            } else {
-              setAvgViews(inputValue);
-            }
-          }}
-          placeholder="0"
-          className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none"
-        />
-      </div>
-      
-      {/* YouTube와 TikTok인 경우 좋아요 수도 별도 입력 */}
-      {(businessType === 'youtube' || businessType === 'tiktok') && (
+      {/* 조회수 입력 - YouTube와 TikTok만 표시 */}
+      {businessType !== 'instagram' && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            최근 {businessType === 'youtube' ? '영상' : '영상'} 평균 좋아요 수
+            {currentConfig.viewsLabel}
           </h3>
           <p className="text-sm text-gray-600 mb-4">
-            최근 10개 {businessType === 'youtube' ? '영상' : '영상'} 평균
+            {currentConfig.viewsPlaceholder}
           </p>
           
           <input
             type="number"
-            value={avgLikes}
-            onChange={(e) => setAvgLikes(e.target.value)}
+            value={avgViews}
+            onChange={(e) => setAvgViews(e.target.value)}
             placeholder="0"
             className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none"
           />
         </div>
       )}
+      
       
       {/* 카테고리 선택 */}
       <div>
@@ -209,19 +184,18 @@ export default function SNSMetricsStep({ businessType, onNext, previousData }: S
         onClick={() => {
           // 디버깅 로그 추가
           console.log('📊 SNS Metrics Input:', {
+            businessType: businessType,
             subscribers: subscribers,
-            avgViews: avgViews,
-            avgLikes: avgLikes,
+            avgViews: businessType === 'instagram' ? '0 (Instagram - 자동설정)' : avgViews,
             parsedSubscribers: parseInt(subscribers) || 0,
-            parsedAvgViews: parseInt(avgViews) || 0,
-            parsedAvgLikes: parseInt(avgLikes) || 0,
+            parsedAvgViews: businessType === 'instagram' ? 0 : parseInt(avgViews) || 0,
             category
           });
           
           onNext({
             subscribers: parseInt(subscribers) || 0,
-            avgViews: parseInt(avgViews) || 0,
-            avgLikes: parseInt(avgLikes) || 0,
+            avgViews: businessType === 'instagram' ? 0 : parseInt(avgViews) || 0,
+            avgLikes: 0,
             category
           });
         }}

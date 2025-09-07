@@ -3,6 +3,11 @@ import { FlippaTransaction, BusinessTypeMapping, BusinessStats, ValuationResult 
 import { CURRENCY, MARKET_ADJUSTMENT, MULTIPLE_LIMITS, ABSOLUTE_LIMITS } from './constants';
 import { getBusinessAgeMultiplier, validateAgeMultipliers } from './business-age-multipliers';
 import { getBusinessMultiples, validateMultiples } from './business-multiples';
+import { 
+  getCategorySubscriberValue,
+  calculateSubscriberValue,
+  getTopCategoriesByPlatform 
+} from './category-subscriber-multiples';
 
 /**
  * 단순화된 비즈니스 가치 계산
@@ -442,4 +447,349 @@ function getFallbackValueKorea(
   console.log('폴백 계산:', (value / 10000).toFixed(0) + '만원');
   
   return createResult(value, getDefaultStats(businessType), 0, 'fallback');
+}
+
+/**
+ * 하이브리드 계산: 매출/수익 + 구독자 기반 가치평가
+ * YouTube, Instagram, TikTok 전용
+ */
+export async function calculateHybridValue(
+  businessType: string,
+  monthlyRevenueManwon: number,
+  monthlyProfitManwon: number,
+  subscribers?: number,
+  category?: string,
+  businessAge?: string
+): Promise<ValuationResult & { details: any }> {
+  
+  const calcId = `HYBRID_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+  const logs: string[] = [];
+  
+  const log = (message: string, data?: any) => {
+    const logMessage = `[${calcId}] ${message}`;
+    console.log(logMessage, data || '');
+    if (data) {
+      logs.push(`${logMessage} ${JSON.stringify(data)}`);
+    } else {
+      logs.push(logMessage);
+    }
+  };
+  
+  try {
+    log('\n========================================');
+    log('🎯 하이브리드 가치평가 계산 시작');
+    log('⏰ 시간:', new Date().toISOString());
+    log('📥 입력 데이터:', {
+      businessType,
+      monthlyRevenue: `${monthlyRevenueManwon}만원`,
+      monthlyProfit: `${monthlyProfitManwon}만원`,
+      subscribers: subscribers || 0,
+      category: category || '없음',
+      businessAge: businessAge || '1-2'
+    });
+    
+    // SNS 플랫폼 확인
+    const snsTypes: ('youtube' | 'instagram' | 'tiktok')[] = ['youtube', 'instagram', 'tiktok'];
+    if (!snsTypes.includes(businessType as any)) {
+      log('⚠️ SNS가 아닌 비즈니스 타입, 기존 방식 사용');
+      const fallbackResult = await calculateRealBusinessValue(
+        businessType,
+        monthlyRevenueManwon,
+        monthlyProfitManwon,
+        subscribers,
+        businessAge
+      );
+      return {
+        ...fallbackResult,
+        details: {
+          calculationMethod: 'revenue_only',
+          revenueBasedValue: fallbackResult.value,
+          subscriberBasedValue: 0,
+          categoryUsed: null,
+          formula: '매출/수익 기반 계산만 사용'
+        }
+      };
+    }
+    
+    // 1. 기존 revenue/profit 기반 계산
+    log('\n=== 1/3 매출/수익 기반 가치 계산 ===');
+    const revenueBasedResult = await calculateRealBusinessValue(
+      businessType,
+      monthlyRevenueManwon,
+      monthlyProfitManwon,
+      subscribers,
+      businessAge
+    );
+    
+    log('💰 매출/수익 기반 결과:', {
+      value: revenueBasedResult.value,
+      valueKRW: `${(revenueBasedResult.value / 10000).toFixed(0)}만원`,
+      method: revenueBasedResult.usedMethod
+    });
+    
+    // 2. 구독자 기반 계산
+    log('\n=== 2/3 구독자 기반 가치 계산 ===');
+    let subscriberBasedValue = 0;
+    let categoryInfo = null;
+    let subscriberCalculation = null;
+    
+    if (subscribers && category && subscribers > 0) {
+      const ageMultiplier = getSimpleAgeMultiplier(businessType, businessAge || '1-2');
+      
+      subscriberCalculation = calculateSubscriberValue(
+        businessType as 'youtube' | 'instagram' | 'tiktok',
+        subscribers,
+        category,
+        ageMultiplier
+      );
+      
+      subscriberBasedValue = subscriberCalculation.adjustedValue;
+      categoryInfo = subscriberCalculation.categoryInfo;
+      
+      log('👥 구독자 기반 결과:', {
+        subscribers,
+        category,
+        categoryValue: categoryInfo?.value || 0,
+        ageMultiplier,
+        baseValue: subscriberCalculation.baseValue,
+        adjustedValue: subscriberBasedValue,
+        adjustedValueKRW: `${(subscriberBasedValue / 10000).toFixed(0)}만원`,
+        formula: subscriberCalculation.formula
+      });
+    } else {
+      log('⚠️ 구독자 기반 계산 불가:', {
+        subscribers: subscribers || 0,
+        category: category || 'null',
+        reason: !subscribers ? '구독자 수 없음' : '카테고리 없음'
+      });
+    }
+    
+    // 3. 하이브리드 계산 로직
+    log('\n=== 3/3 하이브리드 최종 계산 ===');
+    let finalValue: number;
+    let calculationMethod: string;
+    let weightDescription: string;
+    
+    if (subscriberBasedValue > 0) {
+      // 매출이 있는 경우: 가중 평균
+      if (monthlyRevenueManwon > 0) {
+        // 구독자 가치가 매출 기반보다 높으면 구독자 가중치 증가
+        const subscriberToRevenueRatio = subscriberBasedValue / revenueBasedResult.value;
+        let revenueWeight = 0.6;
+        let subscriberWeight = 0.4;
+        
+        if (subscriberToRevenueRatio > 2) {
+          // 구독자 가치가 2배 이상 높으면
+          revenueWeight = 0.3;
+          subscriberWeight = 0.7;
+        } else if (subscriberToRevenueRatio > 1.5) {
+          // 구독자 가치가 1.5배 높으면  
+          revenueWeight = 0.4;
+          subscriberWeight = 0.6;
+        }
+        
+        finalValue = (revenueBasedResult.value * revenueWeight) + (subscriberBasedValue * subscriberWeight);
+        calculationMethod = 'hybrid';
+        weightDescription = `매출 기반 ${Math.round(revenueWeight * 100)}% + 구독자 기반 ${Math.round(subscriberWeight * 100)}%`;
+        
+        log('⚖️ 가중 평균 계산:', {
+          revenueValue: revenueBasedResult.value,
+          subscriberValue: subscriberBasedValue,
+          ratio: subscriberToRevenueRatio.toFixed(2),
+          revenueWeight,
+          subscriberWeight,
+          calculation: `${revenueBasedResult.value} × ${revenueWeight} + ${subscriberBasedValue} × ${subscriberWeight}`,
+          finalValue: Math.round(finalValue)
+        });
+      } 
+      // 매출이 없는 경우: 100% 구독자 기반
+      else {
+        finalValue = subscriberBasedValue;
+        calculationMethod = 'subscriber_only';
+        weightDescription = '구독자 기반 100% (매출 정보 없음)';
+        
+        log('👥 구독자 전용 계산:', {
+          subscriberValue: subscriberBasedValue,
+          finalValue: Math.round(finalValue),
+          reason: '매출 정보 없음'
+        });
+      }
+    } else {
+      // 구독자 기반 계산 불가능: 기존 방식
+      finalValue = revenueBasedResult.value;
+      calculationMethod = 'revenue_only';
+      weightDescription = '매출/수익 기반 100% (구독자 정보 부족)';
+      
+      log('💰 매출 전용 계산:', {
+        revenueValue: revenueBasedResult.value,
+        finalValue: Math.round(finalValue),
+        reason: '구독자 기반 계산 불가'
+      });
+    }
+    
+    // 4. 상한선 적용
+    const revenueBasedMax = monthlyRevenueManwon * 100 * 10000;
+    const subscriberBasedMax = subscribers ? subscribers * 1500 : 0; // 구독자당 1,500원 상한
+    const maxValue = Math.max(revenueBasedMax, subscriberBasedMax);
+    
+    if (finalValue > maxValue) {
+      log('⚠️ 상한선 적용:', {
+        calculatedValue: Math.round(finalValue),
+        maxAllowed: Math.round(maxValue),
+        appliedLimit: finalValue > revenueBasedMax ? '매출 기반' : '구독자 기반',
+        reduction: Math.round(finalValue - maxValue)
+      });
+      finalValue = maxValue;
+    }
+    
+    // 5. 범위 계산 (±25% 변동성)
+    const minValue = Math.round(finalValue * 0.75);
+    const maxValueRange = Math.round(finalValue * 1.25);
+    
+    // 6. 개선된 백분위 계산
+    const percentile = calculateAdvancedPercentile(finalValue, businessType, subscribers);
+    
+    log('✅ 하이브리드 계산 완료:', {
+      finalValue: Math.round(finalValue),
+      finalValueKRW: `${(finalValue / 10000).toFixed(0)}만원`,
+      minValue: `${(minValue / 10000).toFixed(0)}만원`,
+      maxValue: `${(maxValueRange / 10000).toFixed(0)}만원`,
+      percentile,
+      calculationMethod,
+      weightDescription
+    });
+    log('========================================\n');
+    
+    // 로그 전송
+    sendLogsToServer(calcId, logs, {
+      businessType,
+      subscribers,
+      category,
+      finalValue: Math.round(finalValue),
+      calculationMethod,
+      timestamp: new Date().toISOString()
+    });
+    
+    return {
+      value: Math.round(finalValue),
+      percentile,
+      ranking: {
+        nationalRank: Math.round(5553 * (100 - percentile) / 100),
+        industryRank: Math.round(1000 * (100 - percentile) / 100),
+        totalUsers: 5553,
+        industryTotal: 1000,
+        percentile
+      },
+      statistics: revenueBasedResult.statistics,
+      similarTransactions: [],
+      confidence: subscribers && subscribers > 1000 ? 'high' : 'medium',
+      dataCount: (revenueBasedResult.dataCount || 0) + (subscribers ? 1 : 0),
+      usedMethod: calculationMethod as any,
+      details: {
+        calculationMethod,
+        revenueBasedValue: revenueBasedResult.value,
+        subscriberBasedValue: Math.round(subscriberBasedValue),
+        categoryUsed: category,
+        categoryInfo,
+        subscriberCalculation,
+        weightDescription,
+        ageMultiplier: getSimpleAgeMultiplier(businessType, businessAge || '1-2'),
+        formula: getFormulaExplanation(calculationMethod, businessType, {
+          revenueValue: revenueBasedResult.value,
+          subscriberValue: subscriberBasedValue,
+          category,
+          subscribers
+        }),
+        minValue,
+        maxValue: maxValueRange
+      }
+    };
+    
+  } catch (error) {
+    log('❌ 하이브리드 계산 오류:', error instanceof Error ? error.message : String(error));
+    
+    // 오류 시 기존 방식으로 폴백
+    const fallbackResult = await calculateRealBusinessValue(
+      businessType,
+      monthlyRevenueManwon,
+      monthlyProfitManwon,
+      subscribers,
+      businessAge
+    );
+    
+    return {
+      ...fallbackResult,
+      details: {
+        calculationMethod: 'fallback',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        revenueBasedValue: fallbackResult.value,
+        subscriberBasedValue: 0,
+        formula: '오류로 인한 기본 계산'
+      }
+    };
+  }
+}
+
+// 개선된 백분위 계산 (구독자 수 고려)
+function calculateAdvancedPercentile(
+  valueKRW: number,
+  businessType: string,
+  subscribers?: number
+): number {
+  const valueOk = valueKRW / 100000000; // 억원 단위
+  let basePercentile: number;
+  
+  // 기본 가치 기반 백분위
+  if (valueOk < 0.5) basePercentile = 20;   // 5천만원 미만
+  else if (valueOk < 1) basePercentile = 40;     // 1억원 미만
+  else if (valueOk < 3) basePercentile = 60;     // 3억원 미만
+  else if (valueOk < 10) basePercentile = 80;    // 10억원 미만
+  else basePercentile = 90;                       // 10억원 이상
+  
+  // 구독자 수 보정 (±15%)
+  if (subscribers) {
+    let subscriberBonus = 0;
+    if (subscribers < 1000) subscriberBonus = -10;
+    else if (subscribers < 10000) subscriberBonus = -5;
+    else if (subscribers < 100000) subscriberBonus = 5;
+    else if (subscribers < 1000000) subscriberBonus = 10;
+    else subscriberBonus = 15;
+    
+    // 플랫폼별 보정
+    if (businessType === 'youtube' && subscribers > 100000) {
+      subscriberBonus += 5; // YouTube는 추가 보너스
+    } else if (businessType === 'tiktok' && subscribers > 500000) {
+      subscriberBonus += 3; // TikTok 대형 계정 보너스
+    }
+    
+    basePercentile = Math.min(95, Math.max(5, basePercentile + subscriberBonus));
+  }
+  
+  return Math.round(basePercentile);
+}
+
+// 수식 설명 생성
+function getFormulaExplanation(
+  method: string,
+  businessType: string,
+  data?: {
+    revenueValue: number;
+    subscriberValue: number;
+    category?: string;
+    subscribers?: number;
+  }
+): string {
+  switch (method) {
+    case 'hybrid':
+      return `하이브리드: 매출 기반(${(data?.revenueValue || 0 / 10000).toFixed(0)}만원) + 구독자 기반(${(data?.subscriberValue || 0 / 10000).toFixed(0)}만원, ${data?.category})`;
+    
+    case 'subscriber_only':
+      return `구독자 전용: ${(data?.subscribers || 0).toLocaleString()}명 × 카테고리(${data?.category}) 단가`;
+    
+    case 'revenue_only':
+      return `매출 전용: ${businessType} 업종 멀티플 적용`;
+    
+    default:
+      return `표준 계산: ${businessType} 기준`;
+  }
 }

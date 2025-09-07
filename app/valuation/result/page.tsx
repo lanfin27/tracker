@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { calculateBusinessValue } from '@/lib/valuation-multiples';
 import { calculateSNSValue } from '@/lib/sns-valuation-multiples';
-import { calculateRealBusinessValue } from '@/lib/real-valuation-service';
+import { calculateRealBusinessValue, calculateHybridValue } from '@/lib/real-valuation-service';
 import type { ValuationResult } from '@/lib/supabase-types';
 import confetti from 'canvas-confetti';
 import { 
@@ -39,6 +39,7 @@ export default function ResultPage() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [calculationDetails, setCalculationDetails] = useState<any>(null);
   
   // 자동 결과 추적 (이메일 없이)
   useEffect(() => {
@@ -116,15 +117,31 @@ export default function ResultPage() {
       try {
         console.log('🚀 실제 데이터 기반 가치 계산 시작...');
         
-        // 실제 데이터 기반 가치 계산
+        // 하이브리드 계산: 매출/이익 + 구독자 기반 가치 계산
         // 🔴 중요: localStorage는 원 단위, 함수는 만원 단위 기대!
-        const result: ValuationResult = await calculateRealBusinessValue(
-          data.businessType,
-          data.monthlyRevenue / 10000,  // 원 → 만원 변환
-          data.monthlyProfit / 10000,   // 원 → 만원 변환
-          data.subscribers,
-          data.businessAge
-        );
+        const isSNS = ['youtube', 'instagram', 'tiktok'].includes(data.businessType);
+        
+        let result: any;
+        if (isSNS && data.subscribers && data.category) {
+          console.log('🎯 하이브리드 계산 사용 (SNS + 구독자 + 카테고리)');
+          result = await calculateHybridValue(
+            data.businessType,
+            data.monthlyRevenue / 10000,  // 원 → 만원 변환
+            data.monthlyProfit / 10000,   // 원 → 만원 변환
+            data.subscribers,
+            data.category,
+            data.businessAge
+          );
+        } else {
+          console.log('💰 기존 계산 사용 (매출/이익 기반)');
+          result = await calculateRealBusinessValue(
+            data.businessType,
+            data.monthlyRevenue / 10000,  // 원 → 만원 변환
+            data.monthlyProfit / 10000,   // 원 → 만원 변환
+            data.subscribers,
+            data.businessAge
+          );
+        }
         
         console.log('✅ 계산 완료:', result);
         
@@ -134,6 +151,12 @@ export default function ResultPage() {
         setDataCount(result.dataCount);
         setConfidence(result.confidence);
         setUsedMethod(result.usedMethod);
+        
+        // 하이브리드 계산 상세 정보 저장
+        if (result.details) {
+          setCalculationDetails(result.details);
+          console.log('📊 계산 상세 정보:', result.details);
+        }
         
         // Track valuation result
         trackValuationResult(
@@ -150,7 +173,7 @@ export default function ResultPage() {
         
         // 경쟁자 생성 (유사 거래 기반)
         if (result.similarTransactions && result.similarTransactions.length > 0) {
-          const comps = result.similarTransactions.slice(0, 3).map((trans, idx) => ({
+          const comps = result.similarTransactions.slice(0, 3).map((trans: any, idx: number) => ({
             position: idx === 0 ? 'below' : idx === 1 ? 'above' : 'target',
             value: trans.price,
             rank: idx + 1,
@@ -577,7 +600,7 @@ export default function ResultPage() {
               </div>
             )}
             <p className="text-xs text-gray-500">
-              * 매출, 수익{businessData && ['youtube', 'instagram', 'tiktok'].includes(businessData.businessType) ? `, ${getFollowerLabel(businessData.businessType)}` : ''} 종합 평가
+              * 매출, 이익{businessData && ['youtube', 'instagram', 'tiktok'].includes(businessData.businessType) ? `, ${getFollowerLabel(businessData.businessType)}` : ''} 종합 평가
             </p>
             {dataCount > 0 && (
               <div className="mt-3 flex flex-col items-center gap-2">
@@ -587,12 +610,12 @@ export default function ResultPage() {
                     confidence === 'medium' ? 'bg-yellow-500' : 'bg-red-500'
                   }`}></div>
                   <p className="text-xs font-medium text-purple-700">
-                    실제 {dataCount.toLocaleString()}건 거래 데이터 기반
+                    실제 거래 데이터 기반
                   </p>
                 </div>
                 {realDataStats && (
                   <div className="flex items-center gap-3 text-xs text-gray-600">
-                    <span>수익배수: {realDataStats.avg_revenue_multiple?.toFixed(1)}x</span>
+                    <span>이익배수: {realDataStats.avg_revenue_multiple?.toFixed(1)}x</span>
                     <span>이익배수: {realDataStats.avg_profit_multiple?.toFixed(1)}x</span>
                   </div>
                 )}
@@ -633,7 +656,7 @@ export default function ResultPage() {
               <div>
                 <p className="text-xs text-gray-600 mb-1">사용된 배수</p>
                 <p className="text-sm font-bold text-purple-600">
-                  {usedMethod === 'revenue' ? `수익 ${realDataStats.avg_revenue_multiple?.toFixed(1)}x` :
+                  {usedMethod === 'revenue' ? `매출 ${realDataStats.avg_revenue_multiple?.toFixed(1)}x` :
                    usedMethod === 'profit' ? `이익 ${realDataStats.avg_profit_multiple?.toFixed(1)}x` :
                    '폴백 방식'}
                 </p>
@@ -647,6 +670,7 @@ export default function ResultPage() {
             </div>
           </div>
         )}
+        
         
         {/* 주변 경쟁자 + 상세 분석 통합 섹션 */}
         {stage >= 2 && (
@@ -1124,7 +1148,7 @@ export default function ResultPage() {
               <div className="space-y-2">
                 <div className="flex items-start gap-2">
                   <span className="text-purple-500">📊</span>
-                  <span className="text-xs text-gray-700">이번 주 실제 거래 사례 3건</span>
+                  <span className="text-xs text-gray-700">실제 거래 데이터 기반</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-purple-500">📈</span>
@@ -1198,7 +1222,7 @@ export default function ResultPage() {
             
             {/* 브랜드 설명 - 크기 축소 */}
             <p className="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto mb-4">
-              실제 <span className="font-bold text-purple-600">5,815건</span>의 비즈니스 거래 데이터를 기반으로<br className="md:hidden" />
+              <span className="font-bold text-purple-600">실제 거래 데이터</span>를 기반으로<br className="md:hidden" />
               창업자와 크리에이터의 성공을 돕는 데이터 기반 가치 평가 서비스
             </p>
             
