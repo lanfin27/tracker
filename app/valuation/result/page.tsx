@@ -601,59 +601,7 @@ export default function ResultPage() {
           </div>
         </div>
         
-        {/* 순위 정보 */}
-        {stage >= 2 && ranking && (
-          <div className="grid grid-cols-2 gap-2 mb-3 animate-slideUp">
-            <div className="bg-white rounded-2xl p-4">
-              <p className="text-xs text-gray-500 mb-1">전국 순위</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {ranking.nationalRank.toLocaleString()}위
-              </p>
-              <p className="text-xs text-purple-600 font-medium">
-                상위 {ranking.percentile}%
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-2xl p-4">
-              <p className="text-xs text-gray-500 mb-1">{ranking.businessType} 순위</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {ranking.industryRank.toLocaleString()}위
-              </p>
-              <p className="text-xs text-green-600 font-medium">
-                {ranking.industryTotal.toLocaleString()}명 중
-              </p>
-            </div>
-          </div>
-        )}
-        
-        {/* 평균 대비 위치 */}
-        {stage >= 2 && ranking && (
-          <div className="bg-white rounded-2xl p-4 mb-3 animate-slideUp">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-900">평균 대비 위치</span>
-              <span className="text-sm font-bold text-purple-600">
-                {Number(ranking.percentile) > 50 ? '+' : ''}{((Number(ranking.percentile) - 50) * 2).toFixed(0)}%
-              </span>
-            </div>
-            <div className="relative h-8 bg-gray-100 rounded-lg overflow-hidden">
-              <div className="absolute top-0 left-1/2 w-0.5 h-full bg-gray-400 z-10"></div>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full">
-                <div className="text-xs text-gray-500 whitespace-nowrap">평균</div>
-              </div>
-              <div 
-                className="absolute top-0 h-full bg-purple-600 rounded-lg transition-all duration-1000"
-                style={{
-                  left: Number(ranking.percentile) > 50 ? '50%' : `${ranking.percentile}%`,
-                  right: Number(ranking.percentile) > 50 ? `${100 - Number(ranking.percentile)}%` : '50%'
-                }}
-              >
-                <div className={`absolute top-1/2 -translate-y-1/2 ${Number(ranking.percentile) > 50 ? 'right-2' : 'left-2'}`}>
-                  <span className="text-xs text-white font-bold">나</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* 순위 관련 섹션 제거됨 */}
         
         {/* 실제 데이터 통계 표시 */}
         {stage >= 2 && realDataStats && dataCount > 0 && (
